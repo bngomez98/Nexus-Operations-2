@@ -1,38 +1,34 @@
 import { NextResponse } from 'next/server'
-import { getSession, createSession, destroySession, type User } from '@/lib/auth'
-import { getUserByEmail, createUser, getUser } from '@/lib/store'
+import { createSession } from '@/lib/auth'
+import { getUserByEmail, createUser } from '@/lib/store'
 
 export async function POST(request: Request) {
-  const { email, password, role, name } = await request.json()
+  try {
+    const { email, password, role, name } = await request.json()
 
-  if (!email || !password || !role || !name) {
-    return NextResponse.json(
-      { error: 'Missing required fields' },
-      { status: 400 }
-    )
+    if (!email || !password || !role || !name) {
+      return NextResponse.json({ error: 'All fields are required.' }, { status: 400 })
+    }
+    if (!['homeowner', 'contractor'].includes(role)) {
+      return NextResponse.json({ error: 'Invalid role.' }, { status: 400 })
+    }
+    if (getUserByEmail(email)) {
+      return NextResponse.json({ error: 'Email already registered.' }, { status: 409 })
+    }
+
+    const stored = createUser({
+      id: `${role[0]}${Date.now()}`,
+      email: email.toLowerCase().trim(),
+      password,
+      role,
+      name: name.trim(),
+    })
+
+    const { password: _, ...user } = stored
+    await createSession({ ...user })
+
+    return NextResponse.json({ user }, { status: 201 })
+  } catch {
+    return NextResponse.json({ error: 'Server error.' }, { status: 500 })
   }
-
-  // Check if user exists
-  if (getUserByEmail(email)) {
-    return NextResponse.json(
-      { error: 'Email already registered' },
-      { status: 409 }
-    )
-  }
-
-  // Create new user
-  const newUser = createUser({
-    id: `${role[0]}${Date.now()}`,
-    email,
-    role: role as 'homeowner' | 'contractor',
-    name,
-  })
-
-  // Create session
-  await createSession(newUser)
-
-  return NextResponse.json({
-    user: newUser,
-    message: 'Signup successful',
-  })
 }

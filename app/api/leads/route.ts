@@ -1,22 +1,17 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { getProjects } from '@/lib/store'
+import { getOpenProjects } from '@/lib/store'
 
 export async function GET(request: Request) {
   const session = await getSession()
 
   if (!session || session.user.role !== 'contractor') {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
   const { searchParams } = new URL(request.url)
-  const category = searchParams.get('category')
-  const status = searchParams.get('status') || 'open'
+  const category = searchParams.get('category') ?? undefined
 
-  const projects = getProjects({ category: category || undefined, status })
-
+  const projects = getOpenProjects(category)
   return NextResponse.json({ projects })
 }
