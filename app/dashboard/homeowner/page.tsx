@@ -185,9 +185,13 @@ function NewProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated
 function ProjectCard({ project }: { project: Project }) {
   const s = statusStyle(project.status)
   const hasBudget = project.budgetMin || project.budgetMax
-  const budgetText = hasBudget
-    ? `$${(project.budgetMin / 100).toLocaleString()} – $${(project.budgetMax / 100).toLocaleString()}`
-    : 'Budget TBD'
+  const budgetText = !hasBudget
+    ? 'Budget TBD'
+    : !project.budgetMax
+    ? `$${(project.budgetMin / 100).toLocaleString()}+`
+    : !project.budgetMin
+    ? `Up to $${(project.budgetMax / 100).toLocaleString()}`
+    : `$${(project.budgetMin / 100).toLocaleString()} – $${(project.budgetMax / 100).toLocaleString()}`
 
   return (
     <article style={{ backgroundColor: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '16px', padding: '24px 28px' }}>

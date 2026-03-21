@@ -187,7 +187,7 @@ export default function ContractorDashboard() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {user && (
-              <div style={{ textAlign: 'right', display: 'none' }} className="sm-block">
+              <div style={{ textAlign: 'right', display: 'none' }} className="sm:block">
                 <p style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', lineHeight: 1 }}>{user.name}</p>
                 <p style={{ fontSize: '11px', color: '#4b5563', marginTop: '2px' }}>
                   {user.plan ? `${user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} Plan` : 'No active plan'}
