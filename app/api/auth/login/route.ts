@@ -1,24 +1,26 @@
 import { NextResponse } from 'next/server'
-import { createSession } from '@/lib/auth'
-import { getUserByEmail } from '@/lib/store'
+import { createSession, getUserByEmail, verifyPassword } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json()
-
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
     }
 
-    const stored = getUserByEmail(email.toLowerCase().trim())
-    if (!stored || stored.password !== password) {
+    const user = getUserByEmail(email.toLowerCase().trim())
+    if (!user) {
       return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 })
     }
 
-    const { password: _, ...user } = stored
-    await createSession({ ...user })
+    const valid = await verifyPassword(password, user.passwordHash)
+    if (!valid) {
+      return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 })
+    }
 
-    return NextResponse.json({ user })
+    await createSession(user)
+    const { passwordHash: _ph, ...safeUser } = user
+    return NextResponse.json({ user: safeUser, role: user.role })
   } catch {
     return NextResponse.json({ error: 'Server error.' }, { status: 500 })
   }
