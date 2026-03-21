@@ -1,25 +1,37 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Building2, Eye, EyeOff, HomeIcon, HardHat } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Zap, Eye, EyeOff, ArrowRight, Home, HardHat } from 'lucide-react'
+
+const inp: React.CSSProperties = {
+  width: '100%',
+  padding: '13px 16px',
+  backgroundColor: '#111111',
+  border: '1px solid #222222',
+  borderRadius: '10px',
+  color: '#ffffff',
+  fontSize: '14px',
+  outline: 'none',
+  fontFamily: 'inherit',
+}
 
 function SignUpForm() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const initialRole = (searchParams.get('role') as 'homeowner' | 'contractor') ?? 'homeowner'
+  const params = useSearchParams()
+  const initialRole = (params.get('role') as 'homeowner' | 'contractor') ?? 'homeowner'
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', role: initialRole })
-  const [showPassword, setShowPassword] = useState(false)
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', role: initialRole, phone: '', company: '' })
+  const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  function handle(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
@@ -29,11 +41,11 @@ function SignUpForm() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password, role: form.role }),
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password, role: form.role, phone: form.phone, company: form.company }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Sign up failed.'); return }
-      router.push(`/dashboard/${form.role}`)
+      router.push(form.role === 'contractor' ? '/dashboard/contractor' : '/dashboard/homeowner')
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -41,166 +53,105 @@ function SignUpForm() {
     }
   }
 
-  const inputStyle = {
-    backgroundColor: 'var(--color-background)',
-    border: '1px solid var(--color-border)',
-    color: 'var(--color-foreground)',
-    boxShadow: '0 0 0 2px transparent',
-  }
-
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ backgroundColor: 'var(--color-muted)' }}
-    >
-      <div className="w-full max-w-md space-y-6">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ width: '100%', maxWidth: '440px' }}>
+
         {/* Logo */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <Building2 className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
-            <span className="text-2xl font-bold" style={{ color: 'var(--color-foreground)' }}>Nexus Ops</span>
-          </Link>
-          <h1 className="mt-5 text-2xl font-bold" style={{ color: 'var(--color-foreground)' }}>Create an account</h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--color-muted-foreground)' }}>Join Topeka's contractor marketplace</p>
-        </div>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '48px', justifyContent: 'center' }}>
+          <div style={{ width: '36px', height: '36px', backgroundColor: '#22c55e', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={20} color="#0a0a0a" fill="#0a0a0a" />
+          </div>
+          <span style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>Nexus<span style={{ color: '#22c55e' }}>Ops</span></span>
+        </Link>
+
+        <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', marginBottom: '8px', letterSpacing: '-0.025em' }}>Create your account</h1>
+        <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '32px' }}>
+          Already have one?{' '}
+          <Link href="/login" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
+        </p>
 
         {/* Role toggle */}
-        <div
-          className="flex rounded-xl p-1"
-          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
-        >
-          {([['homeowner', 'Homeowner', HomeIcon], ['contractor', 'Contractor', HardHat]] as const).map(([role, label, Icon]) => (
+        <div style={{ display: 'flex', backgroundColor: '#0e0e0e', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '4px', marginBottom: '28px', gap: '4px' }}>
+          {([['homeowner', 'Homeowner', Home], ['contractor', 'Contractor', HardHat]] as const).map(([role, label, Icon]) => (
             <button
               key={role}
               type="button"
-              onClick={() => setForm(prev => ({ ...prev, role }))}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all"
-              style={
-                form.role === role
-                  ? { backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }
-                  : { color: 'var(--color-muted-foreground)' }
-              }
+              onClick={() => setForm((p) => ({ ...p, role }))}
+              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '9px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'all 0.15s', backgroundColor: form.role === role ? '#22c55e' : 'transparent', color: form.role === role ? '#0a0a0a' : '#6b7280', fontFamily: 'inherit' }}
             >
-              <Icon className="w-4 h-4" />
-              {label}
+              <Icon size={14} /> {label}
             </button>
           ))}
         </div>
 
-        {/* Card */}
-        <div
-          className="rounded-2xl p-8 space-y-4"
-          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}
-        >
-          {error && (
-            <div
-              className="px-4 py-3 rounded-lg text-sm"
-              style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
-            >
-              {error}
-            </div>
-          )}
+        {form.role === 'homeowner' && (
+          <div style={{ backgroundColor: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '10px', padding: '12px 16px', marginBottom: '24px', fontSize: '13px', color: '#4ade80' }}>
+            Homeowner accounts are always <strong>free</strong> — no credit card required.
+          </div>
+        )}
+        {form.role === 'contractor' && (
+          <div style={{ backgroundColor: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '10px', padding: '12px 16px', marginBottom: '24px', fontSize: '13px', color: '#4ade80' }}>
+            Choose your membership plan after signup. Starting at <strong>$299/mo</strong>.
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {[
-              { id: 'name', label: 'Full name', type: 'text', placeholder: 'John Smith', autocomplete: 'name' },
-              { id: 'email', label: 'Email address', type: 'email', placeholder: 'john@example.com', autocomplete: 'email' },
-            ].map(field => (
-              <div key={field.id}>
-                <label htmlFor={field.id} className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-foreground)' }}>
-                  {field.label}
-                </label>
-                <input
-                  id={field.id}
-                  name={field.id}
-                  type={field.type}
-                  autoComplete={field.autocomplete}
-                  value={form[field.id as keyof typeof form]}
-                  onChange={handleChange}
-                  required
-                  placeholder={field.placeholder}
-                  className="w-full px-3.5 py-2.5 rounded-lg text-sm focus:outline-none"
-                  style={inputStyle}
-                  onFocus={e => (e.target.style.boxShadow = '0 0 0 2px var(--color-primary)')}
-                  onBlur={e => (e.target.style.boxShadow = '0 0 0 2px transparent')}
-                />
+        {error && (
+          <div style={{ backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '13px 16px', marginBottom: '20px', fontSize: '13px', color: '#f87171' }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Full Name</label>
+            <input name="name" type="text" value={form.name} onChange={handle} required placeholder="John Smith" style={inp} autoComplete="name" />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Email</label>
+            <input name="email" type="email" value={form.email} onChange={handle} required placeholder="you@example.com" style={inp} autoComplete="email" />
+          </div>
+          {form.role === 'contractor' && (
+            <>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Company Name</label>
+                <input name="company" type="text" value={form.company} onChange={handle} placeholder="Torres Home Services" style={inp} />
               </div>
-            ))}
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-foreground)' }}>
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  placeholder="Min. 6 characters"
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-lg text-sm focus:outline-none"
-                  style={inputStyle}
-                  onFocus={e => (e.target.style.boxShadow = '0 0 0 2px var(--color-primary)')}
-                  onBlur={e => (e.target.style.boxShadow = '0 0 0 2px transparent')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--color-muted-foreground)' }}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Phone</label>
+                <input name="phone" type="tel" value={form.phone} onChange={handle} placeholder="(785) 555-0100" style={inp} autoComplete="tel" />
               </div>
-            </div>
-
-            <div>
-              <label htmlFor="confirm" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-foreground)' }}>
-                Confirm password
-              </label>
-              <input
-                id="confirm"
-                name="confirm"
-                type="password"
-                autoComplete="new-password"
-                value={form.confirm}
-                onChange={handleChange}
-                required
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-lg text-sm focus:outline-none"
-                style={inputStyle}
-                onFocus={e => (e.target.style.boxShadow = '0 0 0 2px var(--color-primary)')}
-                onBlur={e => (e.target.style.boxShadow = '0 0 0 2px transparent')}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg font-semibold text-sm"
-              style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)', opacity: loading ? 0.6 : 1 }}
-            >
-              {loading ? 'Creating account...' : `Create ${form.role === 'homeowner' ? 'Homeowner' : 'Contractor'} Account`}
-            </button>
-          </form>
-
-          {form.role === 'homeowner' && (
-            <p className="text-center text-xs px-4 py-3 rounded-lg" style={{ backgroundColor: 'var(--color-muted)', color: 'var(--color-muted-foreground)' }}>
-              Homeowner accounts are always free — no credit card required.
-            </p>
+            </>
           )}
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Password</label>
+            <div style={{ position: 'relative' }}>
+              <input name="password" type={showPw ? 'text' : 'password'} value={form.password} onChange={handle} required placeholder="Min. 6 characters" style={{ ...inp, paddingRight: '48px' }} autoComplete="new-password" />
+              <button type="button" onClick={() => setShowPw((v) => !v)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center' }} aria-label={showPw ? 'Hide password' : 'Show password'}>
+                {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Confirm Password</label>
+            <input name="confirm" type="password" value={form.confirm} onChange={handle} required placeholder="••••••••" style={inp} autoComplete="new-password" />
+          </div>
 
-          <p className="text-center text-sm" style={{ color: 'var(--color-muted-foreground)' }}>
-            Already have an account?{' '}
-            <Link href="/login" className="font-semibold" style={{ color: 'var(--color-primary)' }}>
-              Sign in
-            </Link>
-          </p>
-        </div>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '15px', backgroundColor: '#22c55e', color: '#0a0a0a', fontWeight: 700, fontSize: '15px', borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px', fontFamily: 'inherit', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? 'Creating account...' : <><span>Create Account</span><ArrowRight size={16} /></>}
+          </button>
+        </form>
+
+        <p style={{ fontSize: '12px', color: '#374151', textAlign: 'center', marginTop: '28px', lineHeight: 1.8 }}>
+          By creating an account you agree to our{' '}
+          <Link href="/terms" style={{ color: '#4b5563', textDecoration: 'underline' }}>Terms</Link>
+          {' and '}
+          <Link href="/privacy" style={{ color: '#4b5563', textDecoration: 'underline' }}>Privacy Policy</Link>
+        </p>
       </div>
     </div>
   )
@@ -208,7 +159,7 @@ function SignUpForm() {
 
 export default function SignUpPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }} />}>
       <SignUpForm />
     </Suspense>
   )
