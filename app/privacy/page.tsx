@@ -1,10 +1,12 @@
+import Link from 'next/link'
+
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b border-border">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold text-foreground">Nexus Ops</a>
-          <a href="/" className="text-sm font-medium text-foreground hover:text-primary">Back Home</a>
+          <Link href="/" className="text-xl font-bold text-foreground">Nexus Ops</Link>
+          <Link href="/" className="text-sm font-medium text-foreground hover:text-primary">Back Home</Link>
         </nav>
       </header>
 

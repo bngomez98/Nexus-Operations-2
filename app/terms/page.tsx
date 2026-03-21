@@ -1,10 +1,12 @@
+import Link from 'next/link'
+
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b border-border">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold text-foreground">Nexus Ops</a>
-          <a href="/" className="text-sm font-medium text-foreground hover:text-primary">Back Home</a>
+          <Link href="/" className="text-xl font-bold text-foreground">Nexus Ops</Link>
+          <Link href="/" className="text-sm font-medium text-foreground hover:text-primary">Back Home</Link>
         </nav>
       </header>
 
@@ -34,7 +36,7 @@ export default function TermsPage() {
 
           <div>
             <h2 className="text-xl font-semibold mb-3">5. Limitation of Liability</h2>
-            <p className="text-muted-foreground">Nexus Operations is provided "as is" without warranties. We are not liable for indirect, incidental, or consequential damages.</p>
+            <p className="text-muted-foreground">Nexus Operations is provided &quot;as is&quot; without warranties. We are not liable for indirect, incidental, or consequential damages.</p>
           </div>
 
           <div>

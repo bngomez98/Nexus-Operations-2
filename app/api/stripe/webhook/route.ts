@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         const sub = event.data.object as Stripe.Subscription
         // Find user by stripeCustomerId
         const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id
-        let targetUser = [...userStore.values()].find((u) => u.stripeCustomerId === customerId)
+        const targetUser = [...userStore.values()].find((u) => u.stripeCustomerId === customerId)
         if (targetUser) {
           const status = sub.status === 'active' ? 'active' : sub.status === 'canceled' ? 'canceled' : 'inactive'
           userStore.set(targetUser.id, { ...targetUser, subscriptionStatus: status, stripeSubscriptionId: sub.id })

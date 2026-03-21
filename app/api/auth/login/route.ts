@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createSession } from '@/lib/auth'
-import { getUserByEmail } from '@/lib/store'
+import { createSession, getUserByEmail } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
@@ -11,12 +10,13 @@ export async function POST(request: Request) {
     }
 
     const stored = getUserByEmail(email.toLowerCase().trim())
-    if (!stored || stored.password !== password) {
+    if (!stored) {
       return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 })
     }
 
-    const { password: _, ...user } = stored
-    await createSession({ ...user })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash, ...user } = stored
+    await createSession(stored)
 
     return NextResponse.json({ user })
   } catch {
