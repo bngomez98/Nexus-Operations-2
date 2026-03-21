@@ -2,14 +2,36 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import useSWR, { mutate as globalMutate } from 'swr'
-import { LogOut, AlertCircle, CheckCircle2, MapPin, Clock, Zap, TrendingUp, Filter } from 'lucide-react'
-import { CATEGORIES, URGENCY_LABELS, type Project } from '@/lib/store'
+import useSWR, { mutate } from 'swr'
+import { LogOut, Building2, AlertCircle, CheckCircle2, Filter } from 'lucide-react'
+import type { Project } from '@/lib/store'
 import type { User } from '@/lib/auth'
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (url: string) => fetch(url).then(r => r.json())
 
-const ALL_CATS = ['All', ...CATEGORIES]
+const CATEGORIES = [
+  'All',
+  'Tree Removal',
+  'Concrete Work',
+  'Roofing',
+  'HVAC',
+  'Fencing',
+  'Electrical',
+  'Plumbing',
+  'Excavation',
+]
+
+function StatusBadge({ status }: { status: Project['status'] }) {
+  const styles: Record<string, string> = {
+    open: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    claimed: 'bg-neutral-100 text-neutral-500 ring-1 ring-neutral-200',
+  }
+  return (
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${styles[status] ?? styles.claimed}`}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  )
+}
 
 function ProjectCard({
   project,
@@ -20,78 +42,47 @@ function ProjectCard({
   onClaim: (id: string) => void
   claiming: string | null
 }) {
-  const budgetStr =
-    project.budgetMin && project.budgetMax
-      ? `$${(project.budgetMin / 100).toLocaleString()} – $${(project.budgetMax / 100).toLocaleString()}`
-      : project.budgetMin
-      ? `$${(project.budgetMin / 100).toLocaleString()}+`
-      : 'Budget TBD'
-
-  const isClaiming = claiming === project.id
-  const isOpen = project.status === 'open'
-
   return (
-    <article style={{ backgroundColor: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '18px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px', transition: 'border-color 0.2s' }}>
-      {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '6px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1.3 }}>{project.title}</h3>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 10px', borderRadius: '100px', backgroundColor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', fontSize: '11px', fontWeight: 600, color: '#22c55e', flexShrink: 0 }}>
-            <CheckCircle2 size={9} /> Open
-          </span>
+    <article className="flex flex-col gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-semibold text-[var(--color-foreground)] leading-snug truncate">{project.title}</h3>
+          <p className="text-sm text-[var(--color-muted-foreground)] mt-0.5">{project.category}</p>
         </div>
-        <p style={{ fontSize: '12px', color: '#22c55e', fontWeight: 600 }}>{project.category}</p>
+        <StatusBadge status={project.status} />
       </div>
 
-      {/* Description */}
-      <p style={{ fontSize: '13px', color: '#9ca3af', lineHeight: 1.7, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {project.description}
-      </p>
+      <p className="text-sm text-[var(--color-muted-foreground)] leading-relaxed line-clamp-3">{project.description}</p>
 
-      {/* Tags */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#6b7280', backgroundColor: '#141414', border: '1px solid #1e1e1e', borderRadius: '6px', padding: '4px 8px' }}>
-          <MapPin size={10} color="#22c55e" /> {project.address}
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#6b7280', backgroundColor: '#141414', border: '1px solid #1e1e1e', borderRadius: '6px', padding: '4px 8px' }}>
-          <Clock size={10} color="#22c55e" /> {URGENCY_LABELS[project.urgency]}
-        </span>
+      <div className="rounded-lg bg-[var(--color-muted)] px-4 py-3">
+        <p className="text-xs text-[var(--color-muted-foreground)] mb-0.5">Project Budget</p>
+        <p className="text-2xl font-bold text-[var(--color-foreground)]">
+          ${project.budget.toLocaleString()}
+        </p>
       </div>
 
-      {/* Budget + CTA */}
-      <div style={{ paddingTop: '16px', borderTop: '1px solid #1a1a1a' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <div>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>Budget Range</p>
-            <p style={{ fontSize: '22px', fontWeight: 800, color: '#22c55e', letterSpacing: '-0.04em', lineHeight: 1 }}>{budgetStr}</p>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '10px', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>Posted</p>
-            <p style={{ fontSize: '13px', color: '#6b7280' }}>
-              {new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => onClaim(project.id)}
-          disabled={!isOpen || isClaiming}
-          style={{ width: '100%', padding: '13px', backgroundColor: isOpen ? '#22c55e' : '#1a1a1a', border: isOpen ? 'none' : '1px solid #2a2a2a', borderRadius: '10px', color: isOpen ? '#0a0a0a' : '#4b5563', fontSize: '14px', fontWeight: 700, cursor: isOpen ? 'pointer' : 'not-allowed', opacity: isClaiming ? 0.6 : 1, transition: 'opacity 0.2s, background-color 0.2s' }}
-        >
-          {isClaiming ? 'Claiming...' : isOpen ? 'Claim This Project' : 'Already Claimed'}
-        </button>
-      </div>
+      <button
+        onClick={() => onClaim(project.id)}
+        disabled={project.status !== 'open' || claiming === project.id}
+        className="w-full py-2.5 rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {claiming === project.id
+          ? 'Claiming...'
+          : project.status === 'open'
+          ? 'Claim Project'
+          : 'Already Claimed'}
+      </button>
     </article>
   )
 }
 
 export default function ContractorDashboard() {
-  const [activeCategory, setActiveCategory] = useState('All')
+  const [category, setCategory] = useState('All')
   const [claiming, setClaiming] = useState<string | null>(null)
 
-  const leadsKey = activeCategory === 'All' ? '/api/leads' : `/api/leads?category=${encodeURIComponent(activeCategory)}`
-  const { data: leadsData, isLoading } = useSWR<{ projects: Project[] }>(leadsKey, fetcher)
-  const { data: meData } = useSWR<{ user: Omit<User, 'passwordHash'> }>('/api/auth/me', fetcher)
+  const leadsKey = category === 'All' ? '/api/leads' : `/api/leads?category=${encodeURIComponent(category)}`
+  const { data: leadsData, isLoading: leadsLoading } = useSWR<{ projects: Project[] }>(leadsKey, fetcher)
+  const { data: meData } = useSWR<{ user: User }>('/api/auth/me', fetcher)
 
   const projects = leadsData?.projects ?? []
   const user = meData?.user
@@ -105,7 +96,7 @@ export default function ContractorDashboard() {
         body: JSON.stringify({ projectId }),
       })
       if (res.ok) {
-        globalMutate(leadsKey)
+        mutate(leadsKey)
       }
     } finally {
       setClaiming(null)
@@ -113,58 +104,58 @@ export default function ContractorDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
+    <div className="min-h-screen bg-[var(--color-background)]">
       {/* Header */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1a1a1a' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <div style={{ width: '32px', height: '32px', backgroundColor: '#22c55e', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={17} color="#0a0a0a" fill="#0a0a0a" />
-            </div>
-            <span style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>
-              Nexus<span style={{ color: '#22c55e' }}>Ops</span>
-            </span>
+      <header className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-[var(--color-background)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-bold text-[var(--color-foreground)]">
+            <Building2 className="w-6 h-6 text-[var(--color-primary)]" />
+            <span className="text-lg">Nexus Ops</span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="flex items-center gap-4">
             {user && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {user.plan && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 10px', borderRadius: '100px', backgroundColor: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', fontSize: '11px', fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    <TrendingUp size={9} /> {user.plan}
-                  </span>
-                )}
-                <span style={{ fontSize: '13px', color: '#6b7280' }}>{user.name}</span>
-              </div>
+              <span className="hidden sm:block text-sm text-[var(--color-muted-foreground)]">
+                {user.name}
+              </span>
             )}
             <form action="/api/auth/logout" method="POST">
-              <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#9ca3af', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
-                <LogOut size={13} /> Sign Out
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] rounded-md hover:bg-[var(--color-muted)] transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </form>
           </div>
         </div>
       </header>
 
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 24px' }}>
-        {/* Page header */}
-        <div style={{ marginBottom: '32px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: '#22c55e', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Contractor Portal</p>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.03em' }}>Available Projects</h1>
-          <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '6px' }}>Claim a project to lock it exclusively. It disappears from all other contractors immediately.</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-[var(--color-foreground)]">Available Projects</h1>
+          <p className="text-[var(--color-muted-foreground)] mt-1 text-sm">
+            Browse open projects from homeowners. Claim one to lock it in exclusively.
+          </p>
         </div>
 
         {/* Category filter */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <Filter size={13} color="#6b7280" />
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Filter</span>
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Filter className="w-4 h-4 text-[var(--color-muted-foreground)]" />
+            <span className="text-sm font-medium text-[var(--color-foreground)]">Filter by category</span>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {ALL_CATS.map((cat) => (
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map(cat => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
-                style={{ padding: '7px 16px', borderRadius: '100px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', backgroundColor: activeCategory === cat ? '#22c55e' : '#111111', color: activeCategory === cat ? '#0a0a0a' : '#9ca3af', border: activeCategory === cat ? 'none' : '1px solid #2a2a2a' }}
+                onClick={() => setCategory(cat)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  category === cat
+                    ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
+                    : 'bg-[var(--color-muted)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
+                }`}
               >
                 {cat}
               </button>
@@ -172,27 +163,34 @@ export default function ContractorDashboard() {
           </div>
         </div>
 
-        {/* Results */}
-        {isLoading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} style={{ height: '300px', backgroundColor: '#0e0e0e', borderRadius: '18px', border: '1px solid #1a1a1a' }} />
+        {/* Projects grid */}
+        {leadsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-64 rounded-xl bg-[var(--color-muted)] animate-pulse" />
             ))}
           </div>
         ) : projects.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', border: '1px dashed #2a2a2a', borderRadius: '20px', textAlign: 'center' }}>
-            <AlertCircle size={36} color="#2a2a2a" style={{ marginBottom: '16px' }} />
-            <p style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>No open projects</p>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Check back soon — projects are submitted daily.</p>
+          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[var(--color-border)] rounded-xl text-center">
+            <AlertCircle className="w-10 h-10 text-[var(--color-muted-foreground)] mb-3" />
+            <p className="font-medium text-[var(--color-foreground)]">No open projects</p>
+            <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
+              Check back soon or try a different category.
+            </p>
           </div>
         ) : (
           <>
-            <p style={{ fontSize: '13px', color: '#4b5563', marginBottom: '20px', fontWeight: 500 }}>
+            <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
               {projects.length} project{projects.length !== 1 ? 's' : ''} available
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
-              {projects.map((p) => (
-                <ProjectCard key={p.id} project={p} onClaim={handleClaim} claiming={claiming} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map(project => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onClaim={handleClaim}
+                  claiming={claiming}
+                />
               ))}
             </div>
           </>

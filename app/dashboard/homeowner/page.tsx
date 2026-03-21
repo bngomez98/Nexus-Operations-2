@@ -2,43 +2,78 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import useSWR, { mutate as globalMutate } from 'swr'
-import { LogOut, Plus, AlertCircle, X, CheckCircle2, Clock, Wrench, Zap, MapPin } from 'lucide-react'
-import { CATEGORIES, URGENCY_LABELS, type Project, type Urgency } from '@/lib/store'
+import useSWR, { mutate } from 'swr'
+import { LogOut, Building2, Plus, AlertCircle, X, CheckCircle2, Clock, Hammer } from 'lucide-react'
+import type { Project } from '@/lib/store'
 import type { User } from '@/lib/auth'
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (url: string) => fetch(url).then(r => r.json())
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  open:      { label: 'Open',      color: '#22c55e', bg: 'rgba(34,197,94,0.08)' },
-  claimed:   { label: 'Claimed',   color: '#60a5fa', bg: 'rgba(96,165,250,0.08)' },
-  completed: { label: 'Completed', color: '#9ca3af', bg: 'rgba(156,163,175,0.08)' },
+const CATEGORIES = [
+  'Tree Removal',
+  'Concrete Work',
+  'Roofing',
+  'HVAC',
+  'Fencing',
+  'Electrical',
+  'Plumbing',
+  'Excavation',
+]
+
+const STATUS_STYLES: Record<string, { label: string; className: string; icon: typeof Clock }> = {
+  open: {
+    label: 'Open',
+    className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+    icon: Clock,
+  },
+  claimed: {
+    label: 'Claimed',
+    className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    icon: CheckCircle2,
+  },
+  completed: {
+    label: 'Completed',
+    className: 'bg-neutral-100 text-neutral-500 ring-1 ring-neutral-200',
+    icon: CheckCircle2,
+  },
+  cancelled: {
+    label: 'Cancelled',
+    className: 'bg-red-50 text-red-600 ring-1 ring-red-200',
+    icon: X,
+  },
 }
 
 function StatusBadge({ status }: { status: Project['status'] }) {
-  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.open
+  const s = STATUS_STYLES[status] ?? STATUS_STYLES.open
+  const Icon = s.icon
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', borderRadius: '100px', backgroundColor: cfg.bg, border: `1px solid ${cfg.color}33`, fontSize: '11px', fontWeight: 600, color: cfg.color }}>
-      {status === 'open' && <Clock size={10} />}
-      {(status === 'claimed' || status === 'completed') && <CheckCircle2 size={10} />}
-      {cfg.label}
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${s.className}`}>
+      <Icon className="w-3 h-3" />
+      {s.label}
     </span>
   )
 }
 
-function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState({
-    title: '', category: CATEGORIES[0] as string, description: '',
-    budgetMin: '', budgetMax: '', address: '', urgency: 'flexible' as Urgency,
-  })
+interface NewProjectFormProps {
+  onClose: () => void
+  onCreated: () => void
+}
+
+function NewProjectForm({ onClose, onCreated }: NewProjectFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [form, setForm] = useState({
+    title: '',
+    category: CATEGORIES[0],
+    description: '',
+    budget: '',
+  })
 
-  function handle(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  async function submit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     setError('')
@@ -46,11 +81,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
       const res = await fetch('/api/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          budgetMin: Number(form.budgetMin) * 100,
-          budgetMax: Number(form.budgetMax) * 100,
-        }),
+        body: JSON.stringify({ ...form, budget: Number(form.budget) }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Failed to submit.'); return }
@@ -63,230 +94,253 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
     }
   }
 
-  const inp: React.CSSProperties = { width: '100%', padding: '10px 14px', backgroundColor: '#111111', border: '1px solid #2a2a2a', borderRadius: '10px', color: '#ffffff', fontSize: '14px', outline: 'none' }
-  const lbl: React.CSSProperties = { display: 'block', fontSize: '11px', fontWeight: 700, color: '#6b7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em' }
-
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', padding: '16px' }}>
-      <div style={{ width: '100%', maxWidth: '580px', backgroundColor: '#0f0f0f', border: '1px solid #1e1e1e', borderRadius: '20px', padding: '36px', maxHeight: '92vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
-          <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>New Project</h2>
-            <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '3px' }}>Tell contractors exactly what you need</p>
-          </div>
-          <button onClick={onClose} aria-label="Close" style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <X size={15} />
-          </button>
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-6 mb-8">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Submit a New Project</h2>
+        <button onClick={onClose} className="p-1 rounded-md hover:bg-[var(--color-muted)] transition-colors">
+          <X className="w-5 h-5 text-[var(--color-muted-foreground)]" />
+          <span className="sr-only">Close form</span>
+        </button>
+      </div>
+
+      {error && (
+        <p className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+          {error}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-[var(--color-foreground)] mb-1.5">
+            Project Title
+          </label>
+          <input
+            id="title"
+            name="title"
+            type="text"
+            value={form.title}
+            onChange={handleChange}
+            required
+            placeholder="e.g. Tree Removal – Large Oak in Backyard"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+          />
         </div>
 
-        {error && (
-          <div style={{ padding: '12px 14px', backgroundColor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', fontSize: '13px', color: '#f87171', marginBottom: '20px' }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label style={lbl}>Project Title</label>
-            <input name="title" value={form.title} onChange={handle} required placeholder="e.g. Tree Removal – Large Oak in Backyard" style={inp} />
+            <label htmlFor="category" className="block text-sm font-medium text-[var(--color-foreground)] mb-1.5">
+              Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+            >
+              {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+            </select>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <label style={lbl}>Category</label>
-              <select name="category" value={form.category} onChange={handle} style={inp}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lbl}>Timeline</label>
-              <select name="urgency" value={form.urgency} onChange={handle} style={inp}>
-                {(Object.entries(URGENCY_LABELS) as [Urgency, string][]).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <label style={lbl}>Budget Min ($)</label>
-              <input name="budgetMin" type="number" min="0" value={form.budgetMin} onChange={handle} placeholder="1,000" style={inp} />
-            </div>
-            <div>
-              <label style={lbl}>Budget Max ($)</label>
-              <input name="budgetMax" type="number" min="0" value={form.budgetMax} onChange={handle} placeholder="5,000" style={inp} />
-            </div>
-          </div>
-
           <div>
-            <label style={lbl}>Project Address</label>
-            <input name="address" value={form.address} onChange={handle} placeholder="123 Main St, Topeka, KS 66601" style={inp} />
+            <label htmlFor="budget" className="block text-sm font-medium text-[var(--color-foreground)] mb-1.5">
+              Budget (USD)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-muted-foreground)] text-sm">$</span>
+              <input
+                id="budget"
+                name="budget"
+                type="number"
+                min="100"
+                value={form.budget}
+                onChange={handleChange}
+                required
+                placeholder="2500"
+                className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+              />
+            </div>
           </div>
+        </div>
 
-          <div>
-            <label style={lbl}>Description</label>
-            <textarea name="description" value={form.description} onChange={handle} required rows={4} placeholder="Describe the scope of work, any special requirements, and timeline..." style={{ ...inp, resize: 'vertical' }} />
-          </div>
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium text-[var(--color-foreground)] mb-1.5">
+            Project Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            required
+            rows={4}
+            placeholder="Describe the scope of work, any special requirements, and your timeline..."
+            className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none"
+          />
+        </div>
 
-          <div style={{ display: 'flex', gap: '12px', paddingTop: '4px' }}>
-            <button type="button" onClick={onClose} style={{ flex: 1, padding: '12px', backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '10px', color: '#9ca3af', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
-              Cancel
-            </button>
-            <button type="submit" disabled={submitting} style={{ flex: 2, padding: '12px', backgroundColor: '#22c55e', border: 'none', borderRadius: '10px', color: '#0a0a0a', fontSize: '14px', fontWeight: 700, cursor: 'pointer', opacity: submitting ? 0.6 : 1 }}>
-              {submitting ? 'Submitting...' : 'Submit Project'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-foreground)] hover:bg-[var(--color-muted)] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-6 py-2.5 rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50"
+          >
+            {submitting ? 'Submitting...' : 'Submit Project'}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
 
-function ProjectCard({ project }: { project: Project }) {
-  const budgetStr =
-    project.budgetMin && project.budgetMax
-      ? `$${(project.budgetMin / 100).toLocaleString()} – $${(project.budgetMax / 100).toLocaleString()}`
-      : project.budgetMin
-      ? `$${(project.budgetMin / 100).toLocaleString()}+`
-      : 'TBD'
-
+function ProjectRow({ project }: { project: Project }) {
   return (
-    <article style={{ backgroundColor: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '16px', padding: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.01em', marginBottom: '3px' }}>{project.title}</h3>
-          <p style={{ fontSize: '12px', color: '#6b7280' }}>{project.category}</p>
+    <article className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:shadow-sm transition-shadow">
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
+          <h3 className="font-semibold text-[var(--color-foreground)] truncate">{project.title}</h3>
+          <StatusBadge status={project.status} />
         </div>
-        <StatusBadge status={project.status} />
-      </div>
-
-      <p style={{ fontSize: '13px', color: '#9ca3af', lineHeight: 1.65, marginBottom: '14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {project.description}
-      </p>
-
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#6b7280', backgroundColor: '#141414', border: '1px solid #1e1e1e', borderRadius: '6px', padding: '4px 8px' }}>
-          <MapPin size={10} color="#22c55e" /> {project.address}
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#6b7280', backgroundColor: '#141414', border: '1px solid #1e1e1e', borderRadius: '6px', padding: '4px 8px' }}>
-          <Clock size={10} color="#22c55e" /> {URGENCY_LABELS[project.urgency]}
-        </span>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '14px', borderTop: '1px solid #1a1a1a' }}>
-        <div>
-          <p style={{ fontSize: '10px', color: '#4b5563', marginBottom: '2px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Budget</p>
-          <p style={{ fontSize: '18px', fontWeight: 800, color: project.status === 'open' ? '#22c55e' : '#ffffff', letterSpacing: '-0.03em' }}>{budgetStr}</p>
-        </div>
-        {project.status === 'claimed' && project.claimedByName ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.18)', borderRadius: '8px', padding: '7px 10px' }}>
-            <Wrench size={12} color="#60a5fa" />
-            <span style={{ fontSize: '12px', color: '#93c5fd', fontWeight: 600 }}>{project.claimedByName}</span>
-          </div>
-        ) : (
-          <p style={{ fontSize: '11px', color: '#4b5563' }}>
-            {new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        <p className="text-sm text-[var(--color-muted-foreground)]">{project.category}</p>
+        <p className="text-sm text-[var(--color-muted-foreground)] mt-1.5 line-clamp-2">{project.description}</p>
+        {project.status === 'claimed' && project.claimedByName && (
+          <p className="text-sm text-emerald-700 mt-2 flex items-center gap-1.5">
+            <Hammer className="w-3.5 h-3.5" />
+            Claimed by <span className="font-medium">{project.claimedByName}</span>
           </p>
         )}
+      </div>
+      <div className="shrink-0 text-right sm:text-right">
+        <p className="text-xs text-[var(--color-muted-foreground)] mb-0.5">Budget</p>
+        <p className="text-xl font-bold text-[var(--color-foreground)]">${project.budget.toLocaleString()}</p>
+        <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
+          {new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </p>
       </div>
     </article>
   )
 }
 
 export default function HomeownerDashboard() {
-  const [showModal, setShowModal] = useState(false)
+  const [showForm, setShowForm] = useState(false)
 
   const { data: requestsData, isLoading } = useSWR<{ projects: Project[] }>('/api/requests', fetcher)
-  const { data: meData } = useSWR<{ user: Omit<User, 'passwordHash'> }>('/api/auth/me', fetcher)
+  const { data: meData } = useSWR<{ user: User }>('/api/auth/me', fetcher)
 
   const projects = requestsData?.projects ?? []
   const user = meData?.user
 
-  const stats = [
-    { label: 'Total', value: projects.length },
-    { label: 'Open', value: projects.filter((p) => p.status === 'open').length },
-    { label: 'Claimed', value: projects.filter((p) => p.status === 'claimed').length },
-  ]
+  const stats = {
+    total: projects.length,
+    open: projects.filter(p => p.status === 'open').length,
+    claimed: projects.filter(p => p.status === 'claimed').length,
+  }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
+    <div className="min-h-screen bg-[var(--color-background)]">
       {/* Header */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1a1a1a' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <div style={{ width: '32px', height: '32px', backgroundColor: '#22c55e', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={17} color="#0a0a0a" fill="#0a0a0a" />
-            </div>
-            <span style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>
-              Nexus<span style={{ color: '#22c55e' }}>Ops</span>
-            </span>
+      <header className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-[var(--color-background)]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-bold text-[var(--color-foreground)]">
+            <Building2 className="w-6 h-6 text-[var(--color-primary)]" />
+            <span className="text-lg">Nexus Ops</span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {user && <span style={{ fontSize: '13px', color: '#6b7280' }}>{user.name}</span>}
+          <div className="flex items-center gap-4">
+            {user && (
+              <span className="hidden sm:block text-sm text-[var(--color-muted-foreground)]">{user.name}</span>
+            )}
             <form action="/api/auth/logout" method="POST">
-              <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#9ca3af', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
-                <LogOut size={13} /> Sign Out
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] rounded-md hover:bg-[var(--color-muted)] transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </form>
           </div>
         </div>
       </header>
 
-      <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' }}>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: '#22c55e', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Homeowner Portal</p>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.03em' }}>Your Projects</h1>
-            <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '6px' }}>Submit projects and track contractor responses.</p>
+            <h1 className="text-2xl font-bold text-[var(--color-foreground)]">Your Projects</h1>
+            <p className="text-[var(--color-muted-foreground)] text-sm mt-1">
+              Track your submitted projects and contractor responses.
+            </p>
           </div>
-          <button onClick={() => setShowModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 20px', backgroundColor: '#22c55e', border: 'none', borderRadius: '10px', color: '#0a0a0a', fontSize: '14px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            <Plus size={15} /> New Project
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            New Project
           </button>
         </div>
 
         {/* Stats */}
         {projects.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '32px' }}>
-            {stats.map((s) => (
-              <div key={s.label} style={{ backgroundColor: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '14px', padding: '20px 24px' }}>
-                <p style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.04em', lineHeight: 1 }}>{s.value}</p>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '6px', fontWeight: 500 }}>{s.label}</p>
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            {[
+              { label: 'Total', value: stats.total },
+              { label: 'Awaiting Contractor', value: stats.open },
+              { label: 'Claimed', value: stats.claimed },
+            ].map(stat => (
+              <div key={stat.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-4 text-center">
+                <p className="text-2xl font-bold text-[var(--color-foreground)]">{stat.value}</p>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">{stat.label}</p>
               </div>
             ))}
           </div>
         )}
 
-        {/* Project grid */}
+        {/* New project form */}
+        {showForm && (
+          <NewProjectForm
+            onClose={() => setShowForm(false)}
+            onCreated={() => mutate('/api/requests')}
+          />
+        )}
+
+        {/* Projects list */}
         {isLoading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-            {[1, 2].map((i) => (
-              <div key={i} style={{ height: '220px', backgroundColor: '#0e0e0e', borderRadius: '16px', border: '1px solid #1a1a1a' }} />
+          <div className="space-y-4">
+            {[1, 2].map(i => (
+              <div key={i} className="h-28 rounded-xl bg-[var(--color-muted)] animate-pulse" />
             ))}
           </div>
         ) : projects.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', border: '1px dashed #2a2a2a', borderRadius: '20px', textAlign: 'center' }}>
-            <AlertCircle size={36} color="#2a2a2a" style={{ marginBottom: '16px' }} />
-            <p style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>No projects yet</p>
-            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px' }}>Submit your first project to get matched with a verified contractor.</p>
-            <button onClick={() => setShowModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 20px', backgroundColor: '#22c55e', border: 'none', borderRadius: '10px', color: '#0a0a0a', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
-              <Plus size={15} /> Submit a Project
+          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[var(--color-border)] rounded-xl text-center">
+            <AlertCircle className="w-10 h-10 text-[var(--color-muted-foreground)] mb-3" />
+            <p className="font-medium text-[var(--color-foreground)]">No projects yet</p>
+            <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
+              Submit your first project to start receiving contractor responses.
+            </p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-[var(--color-primary-foreground)] text-sm font-semibold hover:opacity-90 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Submit a Project
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-            {projects.map((p) => <ProjectCard key={p.id} project={p} />)}
+          <div className="space-y-4">
+            {projects.map(project => (
+              <ProjectRow key={project.id} project={project} />
+            ))}
           </div>
         )}
       </main>
-
-      {showModal && (
-        <NewProjectModal
-          onClose={() => setShowModal(false)}
-          onCreated={() => globalMutate('/api/requests')}
-        />
-      )}
     </div>
   )
 }

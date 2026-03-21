@@ -40,8 +40,7 @@ function LoginForm() {
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Invalid email or password.'); return }
       const redirect = params.get('redirect')
-      const role = data.user?.role ?? 'homeowner'
-      router.push(redirect || (role === 'contractor' ? '/dashboard/contractor' : '/dashboard/homeowner'))
+      router.push(redirect || (data.role === 'contractor' ? '/dashboard/contractor' : '/dashboard/homeowner'))
       router.refresh()
     } catch {
       setError('Something went wrong. Please try again.')
