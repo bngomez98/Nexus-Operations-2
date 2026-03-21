@@ -241,12 +241,19 @@ console.log(response)
 
 ## Environment Variables
 
-For local development, create `.env.local`:
+Copy `.env.example` to `.env.local` and fill in the values:
 
-```env
-# No variables required for development
-# Database and integrations added in production
+```bash
+cp .env.example .env.local
 ```
+
+| Variable | Required | Description |
+|---|---|---|
+| `STRIPE_SECRET_KEY` | Yes (checkout) | Stripe secret key — `sk_test_...` for dev |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes (checkout) | Stripe publishable key — `pk_test_...` for dev |
+| `NEXT_PUBLIC_BASE_URL` | Yes (checkout) | App base URL, e.g. `http://localhost:3000` |
+
+> The app runs without Stripe keys, but the contractor subscription flow will throw unless `STRIPE_SECRET_KEY` is set.
 
 ## Resources
 
