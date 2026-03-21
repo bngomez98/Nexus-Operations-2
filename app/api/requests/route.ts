@@ -21,21 +21,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { title, category, description, budgetMin, budgetMax, address, urgency } = await request.json()
-    if (!title || !category || !description) {
-      return NextResponse.json({ error: 'Title, category, and description are required.' }, { status: 400 })
+    const { title, category, description, budget } = await request.json()
+    if (!title || !category || !description || !budget) {
+      return NextResponse.json({ error: 'All fields are required.' }, { status: 400 })
     }
 
     const project = createProject({
       homeownerId: session.user.id,
-      homeownerName: session.user.name,
       title: title.trim(),
       category,
       description: description.trim(),
-      budgetMin: Number(budgetMin) || 0,
-      budgetMax: Number(budgetMax) || 0,
-      address: address?.trim() || 'Topeka, KS',
-      urgency: urgency || 'flexible',
+      budget: Number(budget),
+      status: 'open',
+      photos: [],
     })
 
     return NextResponse.json({ project }, { status: 201 })
