@@ -3,7 +3,6 @@ import Link from 'next/link'
 import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import { PLANS } from '@/lib/products'
-import { createCheckoutSession } from '@/app/actions/stripe'
 import { ArrowRight, CheckCircle2, X, Zap } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Pricing' }
@@ -87,29 +86,25 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <form action={createCheckoutSession.bind(null, plan.id)}>
-                  <button
-                    type="submit"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      padding: '15px',
-                      width: '100%',
-                      backgroundColor: hi ? '#22c55e' : 'transparent',
-                      color: hi ? '#0a0a0a' : '#22c55e',
-                      fontWeight: 700,
-                      fontSize: '15px',
-                      borderRadius: '12px',
-                      border: hi ? 'none' : '1px solid rgba(34,197,94,0.3)',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    Get Started <ArrowRight size={15} />
-                  </button>
-                </form>
+                <Link
+                  href={`/signup?role=contractor&plan=${plan.id}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '15px',
+                    backgroundColor: hi ? '#22c55e' : 'transparent',
+                    color: hi ? '#0a0a0a' : '#22c55e',
+                    fontWeight: 700,
+                    fontSize: '15px',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    border: hi ? 'none' : '1px solid rgba(34,197,94,0.3)',
+                  }}
+                >
+                  Get Started <ArrowRight size={15} />
+                </Link>
               </div>
             )
           })}

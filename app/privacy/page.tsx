@@ -1,58 +1,37 @@
+import type { Metadata } from 'next'
+import Navbar from '@/components/navbar'
+import Footer from '@/components/footer'
+
+export const metadata: Metadata = { title: 'Privacy Policy' }
+
+const SECTIONS = [
+  { title: 'Information We Collect', body: 'We collect information you provide directly to us, such as name, email address, phone number, and project details. We also automatically collect certain information about your device and how you interact with our platform, including IP address and usage patterns.' },
+  { title: 'How We Use Your Information', body: 'We use collected information to provide and improve our services, match homeowners with contractors, process payments through Stripe, send service notifications, and comply with legal obligations. We do not sell your personal data.' },
+  { title: 'Data Security', body: 'We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. All payment data is processed securely by Stripe and is not stored on our servers.' },
+  { title: 'Sharing Your Information', body: 'We do not sell your personal information. When a contractor claims your project, their identity is shared with you and vice versa. We may share information with service providers (such as Stripe for payments) subject to strict confidentiality obligations.' },
+  { title: 'Your Rights', body: 'You have the right to access, correct, or delete your personal information at any time. You may also opt out of promotional emails. To exercise these rights, contact us at privacy@nexusoperations.org.' },
+  { title: 'Cookies', body: 'We use essential cookies for authentication (session management). We do not use advertising or tracking cookies. You can control cookie settings through your browser.' },
+  { title: 'Contact Us', body: 'If you have questions about this privacy policy, contact us at privacy@nexusoperations.org or write to: Nexus Operations LLC, Topeka, KS 66601.' },
+]
+
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold text-foreground">Nexus Ops</a>
-          <a href="/" className="text-sm font-medium text-foreground hover:text-primary">Back Home</a>
-        </nav>
-      </header>
-
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h1 className="text-3xl font-bold text-foreground mb-8">Privacy Policy</h1>
-        
-        <div className="space-y-8 text-foreground">
-          <div>
-            <h2 className="text-xl font-semibold mb-3">Information We Collect</h2>
-            <p className="text-muted-foreground">We collect information you provide directly to us, such as name, email, phone number, and project details. We also automatically collect certain information about your device and how you interact with our site.</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-3">How We Use Your Information</h2>
-            <p className="text-muted-foreground">We use the information we collect to provide, maintain, and improve our services, process transactions, send promotional communications, and comply with legal obligations.</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-3">Data Security</h2>
-            <p className="text-muted-foreground">We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-3">Sharing Your Information</h2>
-            <p className="text-muted-foreground">We do not sell your personal information. We may share information with service providers who assist us in operating our website and conducting our business, subject to confidentiality obligations.</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-3">Your Rights</h2>
-            <p className="text-muted-foreground">You have the right to access, correct, or delete your personal information. To exercise these rights, please contact us at privacy@nexusops.com.</p>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-3">Contact Us</h2>
-            <p className="text-muted-foreground">If you have questions about this privacy policy or our privacy practices, please contact us at privacy@nexusops.com or call (785) 555-1234.</p>
-          </div>
+    <div style={{ backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
+      <Navbar />
+      <main style={{ maxWidth: '760px', margin: '0 auto', padding: '160px 24px 120px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, color: '#22c55e', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '16px' }}>Legal</p>
+        <h1 style={{ fontSize: 'clamp(30px, 4vw, 48px)', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.03em', marginBottom: '12px', lineHeight: 1.1 }}>Privacy Policy</h1>
+        <p style={{ fontSize: '15px', color: '#4b5563', marginBottom: '64px' }}>Last updated: March 2025</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+          {SECTIONS.map((s) => (
+            <div key={s.title} style={{ borderTop: '1px solid #1a1a1a', paddingTop: '36px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', marginBottom: '12px', letterSpacing: '-0.01em' }}>{s.title}</h2>
+              <p style={{ fontSize: '15px', color: '#6b7280', lineHeight: 1.8 }}>{s.body}</p>
+            </div>
+          ))}
         </div>
-
-        <div className="mt-12 p-6 bg-muted rounded-lg border border-border">
-          <p className="text-sm text-muted-foreground">Last updated: March 2024</p>
-        </div>
-      </section>
-
-      <footer className="border-t border-border mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 Nexus Operations. All rights reserved.</p>
-        </div>
-      </footer>
-    </main>
+      </main>
+      <Footer />
+    </div>
   )
 }
