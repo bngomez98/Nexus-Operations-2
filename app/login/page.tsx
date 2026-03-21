@@ -1,20 +1,31 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { Building2, Eye, EyeOff } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Zap, Eye, EyeOff, ArrowRight } from 'lucide-react'
 
-export default function LoginPage() {
+const inp: React.CSSProperties = {
+  width: '100%',
+  padding: '13px 16px',
+  backgroundColor: '#111111',
+  border: '1px solid #222222',
+  borderRadius: '10px',
+  color: '#ffffff',
+  fontSize: '15px',
+  outline: 'none',
+  fontFamily: 'inherit',
+  boxSizing: 'border-box',
+}
+
+function LoginForm() {
   const router = useRouter()
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [showPassword, setShowPassword] = useState(false)
+  const params = useSearchParams()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,138 +35,101 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ email, password }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Login failed.'); return }
-      router.push(`/dashboard/${data.user.role}`)
+      if (!res.ok) { setError(data.error || 'Invalid email or password.'); return }
+      const redirect = params.get('redirect')
+      router.push(redirect || (data.role === 'contractor' ? '/dashboard/contractor' : '/dashboard/homeowner'))
+      router.refresh()
     } catch {
-      setError('Network error. Please try again.')
+      setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ backgroundColor: 'var(--color-muted)' }}
-    >
-      <div className="w-full max-w-md space-y-6">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
         {/* Logo */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <Building2 className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
-            <span className="text-2xl font-bold" style={{ color: 'var(--color-foreground)' }}>Nexus Ops</span>
-          </Link>
-          <h1 className="mt-5 text-2xl font-bold" style={{ color: 'var(--color-foreground)' }}>Welcome back</h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--color-muted-foreground)' }}>Sign in to your account</p>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '52px', justifyContent: 'center' }}>
+          <div style={{ width: '36px', height: '36px', backgroundColor: '#22c55e', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={20} color="#0a0a0a" fill="#0a0a0a" />
+          </div>
+          <span style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>Nexus<span style={{ color: '#22c55e' }}>Ops</span></span>
+        </Link>
+
+        <h1 style={{ fontSize: '30px', fontWeight: 800, color: '#ffffff', marginBottom: '8px', letterSpacing: '-0.025em' }}>Welcome back</h1>
+        <p style={{ fontSize: '15px', color: '#6b7280', marginBottom: '36px' }}>
+          No account?{' '}
+          <Link href="/signup" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 600 }}>Sign up free</Link>
+        </p>
+
+        {error && (
+          <div style={{ backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '13px 16px', marginBottom: '20px', fontSize: '14px', color: '#f87171' }}>
+            {error}
+          </div>
+        )}
+
+        {/* Demo hint */}
+        <div style={{ backgroundColor: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '12px', padding: '16px 18px', marginBottom: '28px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: '#4b5563', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Demo credentials</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {[
+              { label: 'Homeowner', e: 'homeowner@demo.com', p: 'password123' },
+              { label: 'Contractor', e: 'contractor@demo.com', p: 'password123' },
+            ].map((d) => (
+              <button
+                key={d.label}
+                type="button"
+                onClick={() => { setEmail(d.e); setPassword(d.p) }}
+                style={{ background: 'none', border: '1px solid #1e1e1e', cursor: 'pointer', textAlign: 'left', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', color: '#6b7280', backgroundColor: '#141414', fontFamily: 'inherit', transition: 'border-color 0.2s' }}
+              >
+                <span style={{ color: '#22c55e', fontWeight: 600 }}>{d.label}</span> — {d.e} / {d.p}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Card */}
-        <div
-          className="rounded-2xl p-8 space-y-5"
-          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}
-        >
-          {error && (
-            <div
-              className="px-4 py-3 rounded-lg text-sm"
-              style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
-            >
-              {error}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>Email address</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={inp} placeholder="you@example.com" autoComplete="email" />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '8px' }}>Password</label>
+            <div style={{ position: 'relative' }}>
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required style={{ ...inp, paddingRight: '48px' }} placeholder="••••••••" autoComplete="current-password" />
+              <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center' }}>
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
-          )}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-foreground)' }}>
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                placeholder="john@example.com"
-                className="w-full px-3.5 py-2.5 rounded-lg text-sm focus:outline-none"
-                style={{
-                  backgroundColor: 'var(--color-background)',
-                  border: '1px solid var(--color-border)',
-                  color: 'var(--color-foreground)',
-                  boxShadow: '0 0 0 2px transparent',
-                }}
-                onFocus={e => (e.target.style.boxShadow = '0 0 0 2px var(--color-primary)')}
-                onBlur={e => (e.target.style.boxShadow = '0 0 0 2px transparent')}
-              />
-            </div>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '15px', backgroundColor: '#22c55e', color: '#0a0a0a', fontWeight: 700, fontSize: '15px', borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '4px', fontFamily: 'inherit', opacity: loading ? 0.7 : 1, transition: 'opacity 0.2s' }}
+          >
+            {loading ? 'Signing in…' : <><span>Sign In</span><ArrowRight size={16} /></>}
+          </button>
+        </form>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--color-foreground)' }}>
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-lg text-sm focus:outline-none"
-                  style={{
-                    backgroundColor: 'var(--color-background)',
-                    border: '1px solid var(--color-border)',
-                    color: 'var(--color-foreground)',
-                    boxShadow: '0 0 0 2px transparent',
-                  }}
-                  onFocus={e => (e.target.style.boxShadow = '0 0 0 2px var(--color-primary)')}
-                  onBlur={e => (e.target.style.boxShadow = '0 0 0 2px transparent')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--color-muted-foreground)' }}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-lg font-semibold text-sm mt-2"
-              style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primary-foreground)', opacity: loading ? 0.6 : 1 }}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-
-          <p className="text-center text-sm" style={{ color: 'var(--color-muted-foreground)' }}>
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-semibold" style={{ color: 'var(--color-primary)' }}>
-              Sign up free
-            </Link>
-          </p>
-        </div>
-
-        {/* Demo */}
-        <div
-          className="rounded-xl p-4 text-sm space-y-1"
-          style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
-        >
-          <p className="font-semibold" style={{ color: 'var(--color-foreground)' }}>Demo accounts</p>
-          <p style={{ color: 'var(--color-muted-foreground)' }}>Homeowner: <span className="font-mono">john@example.com</span> / <span className="font-mono">password</span></p>
-          <p style={{ color: 'var(--color-muted-foreground)' }}>Contractor: <span className="font-mono">contractor@example.com</span> / <span className="font-mono">password</span></p>
-        </div>
+        <p style={{ fontSize: '13px', color: '#374151', textAlign: 'center', marginTop: '32px' }}>
+          <Link href="/terms" style={{ color: '#4b5563', textDecoration: 'underline' }}>Terms</Link>
+          {' · '}
+          <Link href="/privacy" style={{ color: '#4b5563', textDecoration: 'underline' }}>Privacy</Link>
+        </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }} />}>
+      <LoginForm />
+    </Suspense>
   )
 }

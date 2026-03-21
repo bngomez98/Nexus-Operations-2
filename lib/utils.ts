@@ -5,25 +5,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(cents: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(amount)
+    minimumFractionDigits: 0,
+  }).format(cents / 100)
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(iso: string): string {
   return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
-  }).format(date)
+    year: 'numeric',
+  }).format(new Date(iso))
 }
 
 export function getInitials(name: string): string {
   return name
     .split(' ')
-    .map(n => n[0])
+    .map((n) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2)
