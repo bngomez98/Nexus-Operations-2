@@ -84,7 +84,8 @@ export async function getSession(): Promise<Session | null> {
 }
 
 export async function createSession(user: User): Promise<void> {
-  const { passwordHash: _ph, ...safeUser } = user
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { passwordHash, ...safeUser } = user
   const sessionId = crypto.randomUUID()
   sessionStore.set(sessionId, { userId: user.id, user: safeUser })
 
