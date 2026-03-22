@@ -3,20 +3,8 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Zap, Eye, EyeOff, ArrowRight, HomeIcon, HardHat } from 'lucide-react'
-
-const inp: React.CSSProperties = {
-  width: '100%',
-  padding: '13px 16px',
-  backgroundColor: '#111111',
-  border: '1px solid #222222',
-  borderRadius: '10px',
-  color: '#ffffff',
-  fontSize: '15px',
-  outline: 'none',
-  fontFamily: 'inherit',
-  boxSizing: 'border-box',
-}
+import { Building2, Eye, EyeOff, ArrowRight, Home, HardHat } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 function SignUpForm() {
   const router = useRouter()
@@ -44,33 +32,45 @@ function SignUpForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
-    setLoading(true)
-    try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          role: form.role,
-          phone: form.phone,
-          company: form.company,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Sign up failed.'); return }
+    
+    if (form.password !== form.confirm) {
+      setError('Passwords do not match.')
+      return
+    }
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
 
-      if (form.role === 'contractor' && plan) {
-        router.push(`/dashboard/contractor/subscribe?plan=${plan}`)
-      } else if (form.role === 'contractor') {
-        router.push('/dashboard/contractor/subscribe')
-      } else {
-        router.push('/dashboard/homeowner')
+    setLoading(true)
+    
+    try {
+      const supabase = createClient()
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard/${form.role}`,
+          data: {
+            full_name: form.name,
+            phone: form.phone,
+            company: form.company,
+            role: form.role,
+          },
+        },
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        return
       }
-      router.refresh()
+
+      // Redirect to success page or dashboard
+      if (form.role === 'contractor' && plan) {
+        router.push(`/signup/success?plan=${plan}`)
+      } else {
+        router.push('/signup/success')
+      }
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -79,146 +79,171 @@ function SignUpForm() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ width: '100%', maxWidth: '460px' }}>
+    <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-lg">
         {/* Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '48px', justifyContent: 'center' }}>
-          <div style={{ width: '36px', height: '36px', backgroundColor: '#22c55e', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={20} color="#0a0a0a" fill="#0a0a0a" />
+        <Link href="/" className="flex items-center gap-3 no-underline mb-12 justify-center">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+            <Building2 size={22} className="text-primary-fg" />
           </div>
-          <span style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>Nexus<span style={{ color: '#22c55e' }}>Ops</span></span>
+          <span className="text-xl font-bold text-foreground">
+            Nexus <span className="text-primary">Operations</span>
+          </span>
         </Link>
 
-        <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', marginBottom: '6px', letterSpacing: '-0.025em' }}>Create your account</h1>
-        <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '28px' }}>
+        <h1 className="text-3xl font-extrabold text-foreground mb-2 tracking-tight">Create your account</h1>
+        <p className="text-base text-muted mb-8">
           Already have one?{' '}
-          <Link href="/login" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
+          <Link href="/login" className="text-primary no-underline font-semibold hover:underline">
+            Sign in
+          </Link>
         </p>
 
         {/* Role toggle */}
-        <div style={{ display: 'flex', backgroundColor: '#0e0e0e', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '4px', gap: '4px', marginBottom: '28px' }}>
-          {([['homeowner', 'Homeowner', HomeIcon], ['contractor', 'Contractor', HardHat]] as const).map(([role, label, Icon]) => (
+        <div className="flex bg-card border border-border rounded-xl p-1 gap-1 mb-8">
+          {([['homeowner', 'Homeowner', Home], ['contractor', 'Contractor', HardHat]] as const).map(([role, label, Icon]) => (
             <button
               key={role}
               type="button"
               onClick={() => set('role', role)}
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '7px',
-                padding: '11px',
-                borderRadius: '9px',
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontSize: '14px',
-                fontWeight: 600,
-                transition: 'all 0.15s',
-                backgroundColor: form.role === role ? '#22c55e' : 'transparent',
-                color: form.role === role ? '#0a0a0a' : '#6b7280',
-              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border-none cursor-pointer text-sm font-semibold transition-all ${
+                form.role === role 
+                  ? 'bg-primary text-primary-fg' 
+                  : 'bg-transparent text-muted hover:text-foreground'
+              }`}
             >
-              <Icon size={15} />
+              <Icon size={16} />
               {label}
-              {role === 'homeowner' && <span style={{ fontSize: '11px', fontWeight: 700, opacity: form.role === role ? 0.7 : 0.5 }}>FREE</span>}
+              {role === 'homeowner' && <span className="text-xs font-bold opacity-70">FREE</span>}
             </button>
           ))}
         </div>
 
         {error && (
-          <div style={{ backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', fontSize: '14px', color: '#f87171' }}>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-6 text-sm text-red-400">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#6b7280', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Full Name *</label>
-              <input style={inp} type="text" value={form.name} onChange={(e) => set('name', e.target.value)} required placeholder="Alex Johnson" autoComplete="name" />
+              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Full Name *</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => set('name', e.target.value)}
+                required
+                className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="Alex Johnson"
+                autoComplete="name"
+              />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#6b7280', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Phone</label>
-              <input style={inp} type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="785-555-0100" autoComplete="tel" />
+              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Phone</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => set('phone', e.target.value)}
+                className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="785-555-0100"
+                autoComplete="tel"
+              />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#6b7280', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Email Address *</label>
-            <input style={inp} type="email" value={form.email} onChange={(e) => set('email', e.target.value)} required placeholder="you@example.com" autoComplete="email" />
+            <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Email Address *</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => set('email', e.target.value)}
+              required
+              className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+              placeholder="you@company.com"
+              autoComplete="email"
+            />
           </div>
 
           {form.role === 'contractor' && (
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#6b7280', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Company Name</label>
-              <input style={inp} type="text" value={form.company} onChange={(e) => set('company', e.target.value)} placeholder="Your Business Name" autoComplete="organization" />
+              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Company Name</label>
+              <input
+                type="text"
+                value={form.company}
+                onChange={(e) => set('company', e.target.value)}
+                className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="Your Business Name"
+                autoComplete="organization"
+              />
             </div>
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#6b7280', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Password *</label>
-            <div style={{ position: 'relative' }}>
-              <input type={showPw ? 'text' : 'password'} value={form.password} onChange={(e) => set('password', e.target.value)} required style={{ ...inp, paddingRight: '48px' }} placeholder="Min. 6 characters" autoComplete="new-password" />
-              <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center' }}>
-                {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
+            <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Password *</label>
+            <div className="relative">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => set('password', e.target.value)}
+                required
+                className="w-full px-4 py-3.5 pr-12 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="Min. 6 characters"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(!showPw)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-muted hover:text-foreground flex items-center"
+              >
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#6b7280', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Confirm Password *</label>
-            <input style={inp} type="password" value={form.confirm} onChange={(e) => set('confirm', e.target.value)} required placeholder="••••••••" autoComplete="new-password" />
+            <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Confirm Password *</label>
+            <input
+              type="password"
+              value={form.confirm}
+              onChange={(e) => set('confirm', e.target.value)}
+              required
+              className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+              placeholder="Re-enter password"
+              autoComplete="new-password"
+            />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '15px',
-              backgroundColor: '#22c55e',
-              color: '#0a0a0a',
-              fontWeight: 700,
-              fontSize: '15px',
-              borderRadius: '10px',
-              border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginTop: '4px',
-              fontFamily: 'inherit',
-              opacity: loading ? 0.7 : 1,
-              transition: 'opacity 0.2s',
-            }}
+            className="flex items-center justify-center gap-2 py-4 bg-primary text-primary-fg font-bold text-base rounded-xl border-none cursor-pointer mt-2 hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating account…' : (
+            {loading ? 'Creating account...' : (
               <>
                 {form.role === 'homeowner' ? 'Create Free Account' : 'Create Contractor Account'}
-                <ArrowRight size={16} />
+                <ArrowRight size={18} />
               </>
             )}
           </button>
         </form>
 
         {form.role === 'homeowner' && (
-          <div style={{ marginTop: '16px', padding: '12px 16px', backgroundColor: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '10px', textAlign: 'center' }}>
-            <p style={{ fontSize: '13px', color: '#4b5563' }}>Homeowner accounts are always free — no credit card needed.</p>
+          <div className="mt-5 p-4 bg-card border border-border rounded-xl text-center">
+            <p className="text-sm text-muted">Homeowner accounts are always free — no credit card required.</p>
           </div>
         )}
 
         {form.role === 'contractor' && (
-          <div style={{ marginTop: '16px', padding: '12px 16px', backgroundColor: '#0e0e0e', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '10px', textAlign: 'center' }}>
-            <p style={{ fontSize: '13px', color: '#4b5563' }}>After creating your account, you&apos;ll choose a membership plan to access the project feed.</p>
+          <div className="mt-5 p-4 bg-card border border-primary/20 rounded-xl text-center">
+            <p className="text-sm text-muted">After creating your account, select a membership plan to access the project feed.</p>
           </div>
         )}
 
-        <p style={{ fontSize: '12px', color: '#2d2d2d', textAlign: 'center', marginTop: '28px' }}>
-          <Link href="/terms" style={{ color: '#374151', textDecoration: 'underline' }}>Terms</Link>
+        <p className="text-xs text-muted text-center mt-8">
+          <Link href="/terms" className="text-muted underline hover:text-foreground">Terms</Link>
           {' · '}
-          <Link href="/privacy" style={{ color: '#374151', textDecoration: 'underline' }}>Privacy</Link>
+          <Link href="/privacy" className="text-muted underline hover:text-foreground">Privacy</Link>
         </p>
       </div>
     </div>
@@ -227,7 +252,7 @@ function SignUpForm() {
 
 export default function SignUpPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }} />}>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <SignUpForm />
     </Suspense>
   )

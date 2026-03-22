@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Zap } from 'lucide-react'
+import { Menu, X, Building2 } from 'lucide-react'
 
 const NAV_LINKS = [
   { href: '/how-it-works', label: 'How It Works' },
@@ -28,125 +28,51 @@ export default function Navbar() {
 
   return (
     <header
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        transition: 'all 0.3s ease',
-        backgroundColor: scrolled ? 'rgba(10,10,10,0.95)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        borderBottom: scrolled ? '1px solid #222222' : '1px solid transparent',
-      }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-background/95 backdrop-blur-xl border-b border-border' 
+          : 'bg-transparent border-b border-transparent'
+      }`}
     >
-      <nav
-        style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          padding: '0 24px',
-          height: '72px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <nav className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
         {/* Logo */}
-        <Link
-          href="/"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            textDecoration: 'none',
-          }}
-        >
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              backgroundColor: '#22c55e',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Zap size={20} color="#0a0a0a" fill="#0a0a0a" />
+        <Link href="/" className="flex items-center gap-3 no-underline">
+          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shrink-0">
+            <Building2 size={20} className="text-primary-fg" />
           </div>
-          <span
-            style={{
-              fontSize: '18px',
-              fontWeight: 700,
-              color: '#ffffff',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Nexus<span style={{ color: '#22c55e' }}>Ops</span>
+          <span className="text-lg font-bold text-foreground tracking-tight">
+            Nexus <span className="text-primary">Operations</span>
           </span>
         </Link>
 
         {/* Desktop nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="hidden-mobile">
+        <div className="hidden md:flex items-center gap-2">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              style={{
-                padding: '8px 16px',
-                fontSize: '14px',
-                fontWeight: 500,
-                color: pathname === link.href ? '#22c55e' : '#9ca3af',
-                textDecoration: 'none',
-                borderRadius: '8px',
-                transition: 'color 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (pathname !== link.href) (e.target as HTMLElement).style.color = '#ffffff'
-              }}
-              onMouseLeave={(e) => {
-                if (pathname !== link.href) (e.target as HTMLElement).style.color = '#9ca3af'
-              }}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors no-underline ${
+                pathname === link.href 
+                  ? 'text-primary' 
+                  : 'text-muted hover:text-foreground'
+              }`}
             >
               {link.label}
             </Link>
           ))}
 
-          <div style={{ width: '1px', height: '20px', backgroundColor: '#222222', margin: '0 8px' }} />
+          <div className="w-px h-5 bg-border mx-2" />
 
           <Link
             href="/login"
-            style={{
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#9ca3af',
-              textDecoration: 'none',
-              borderRadius: '8px',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#ffffff' }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#9ca3af' }}
+            className="px-4 py-2 text-sm font-medium text-muted hover:text-foreground rounded-lg transition-colors no-underline"
           >
             Sign In
           </Link>
 
           <Link
             href="/signup"
-            style={{
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: '#0a0a0a',
-              backgroundColor: '#22c55e',
-              textDecoration: 'none',
-              borderRadius: '8px',
-              transition: 'background-color 0.2s',
-              whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = '#16a34a' }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.backgroundColor = '#22c55e' }}
+            className="px-5 py-2.5 text-sm font-semibold text-primary-fg bg-primary rounded-lg hover:bg-primary/90 transition-colors no-underline whitespace-nowrap"
           >
             Get Started
           </Link>
@@ -155,14 +81,7 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setOpen(!open)}
-          className="show-mobile"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#ffffff',
-            cursor: 'pointer',
-            padding: '8px',
-          }}
+          className="md:hidden bg-transparent border-none text-foreground cursor-pointer p-2"
           aria-label="Toggle menu"
         >
           {open ? <X size={24} /> : <Menu size={24} />}
@@ -171,77 +90,35 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div
-          style={{
-            backgroundColor: '#111111',
-            borderTop: '1px solid #222222',
-            padding: '16px 24px 24px',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="md:hidden bg-card border-t border-border px-6 py-4">
+          <div className="flex flex-col gap-1">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                style={{
-                  padding: '12px 16px',
-                  fontSize: '15px',
-                  fontWeight: 500,
-                  color: pathname === link.href ? '#22c55e' : '#d1d5db',
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                  display: 'block',
-                }}
+                className={`px-4 py-3 text-base font-medium rounded-lg block no-underline ${
+                  pathname === link.href ? 'text-primary' : 'text-muted'
+                }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div style={{ height: '1px', backgroundColor: '#222222', margin: '8px 0' }} />
+            <div className="h-px bg-border my-2" />
             <Link
               href="/login"
-              style={{
-                padding: '12px 16px',
-                fontSize: '15px',
-                fontWeight: 500,
-                color: '#d1d5db',
-                textDecoration: 'none',
-                borderRadius: '8px',
-                display: 'block',
-              }}
+              className="px-4 py-3 text-base font-medium text-muted rounded-lg block no-underline"
             >
               Sign In
             </Link>
             <Link
               href="/signup"
-              style={{
-                padding: '14px 16px',
-                fontSize: '15px',
-                fontWeight: 600,
-                color: '#0a0a0a',
-                backgroundColor: '#22c55e',
-                textDecoration: 'none',
-                borderRadius: '8px',
-                display: 'block',
-                textAlign: 'center',
-                marginTop: '8px',
-              }}
+              className="px-4 py-3.5 text-base font-semibold text-primary-fg bg-primary rounded-lg block text-center no-underline mt-2"
             >
               Get Started Free
             </Link>
           </div>
         </div>
       )}
-
-      <style>{`
-        @media (min-width: 768px) {
-          .hidden-mobile { display: flex !important; }
-          .show-mobile { display: none !important; }
-        }
-        @media (max-width: 767px) {
-          .hidden-mobile { display: none !important; }
-          .show-mobile { display: flex !important; }
-        }
-      `}</style>
     </header>
   )
 }

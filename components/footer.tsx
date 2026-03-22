@@ -1,70 +1,44 @@
 'use client'
 
 import Link from 'next/link'
-import { Zap, MapPin, Phone, Mail } from 'lucide-react'
+import { Building2, MapPin, Phone, Mail } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer
-      style={{
-        backgroundColor: '#0a0a0a',
-        borderTop: '1px solid #1a1a1a',
-        padding: '64px 24px 32px',
-      }}
-    >
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+    <footer className="bg-background border-t border-border px-6 py-16">
+      <div className="max-w-7xl mx-auto">
         {/* Top grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '48px',
-            marginBottom: '56px',
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-14">
           {/* Brand */}
-          <div style={{ gridColumn: 'span 1' }}>
-            <Link
-              href="/"
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '16px' }}
-            >
-              <div
-                style={{
-                  width: '34px',
-                  height: '34px',
-                  backgroundColor: '#22c55e',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Zap size={18} color="#0a0a0a" fill="#0a0a0a" />
+          <div>
+            <Link href="/" className="flex items-center gap-3 no-underline mb-4">
+              <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+                <Building2 size={18} className="text-primary-fg" />
               </div>
-              <span style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>
-                Nexus<span style={{ color: '#22c55e' }}>Ops</span>
+              <span className="text-base font-bold text-foreground">
+                Nexus <span className="text-primary">Operations</span>
               </span>
             </Link>
-            <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.7', marginBottom: '20px' }}>
-              Topeka&apos;s exclusive contractor marketplace. One project, one contractor, zero competition.
+            <p className="text-sm text-muted leading-relaxed mb-5">
+              The exclusive contractor marketplace. One project, one contractor, complete dedication.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="flex flex-col gap-3">
               <a
                 href="tel:7855550100"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#6b7280', textDecoration: 'none' }}
+                className="flex items-center gap-2 text-sm text-muted no-underline hover:text-foreground transition-colors"
               >
-                <Phone size={14} color="#22c55e" />
+                <Phone size={14} className="text-primary" />
                 (785) 555-0100
               </a>
               <a
                 href="mailto:support@nexusoperations.org"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#6b7280', textDecoration: 'none' }}
+                className="flex items-center gap-2 text-sm text-muted no-underline hover:text-foreground transition-colors"
               >
-                <Mail size={14} color="#22c55e" />
+                <Mail size={14} className="text-primary" />
                 support@nexusoperations.org
               </a>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#6b7280' }}>
-                <MapPin size={14} color="#22c55e" />
+              <span className="flex items-center gap-2 text-sm text-muted">
+                <MapPin size={14} className="text-primary" />
                 Topeka, KS 66601
               </span>
             </div>
@@ -72,22 +46,19 @@ export default function Footer() {
 
           {/* For Homeowners */}
           <div>
-            <p style={{ fontSize: '12px', fontWeight: 600, color: '#22c55e', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '20px' }}>
+            <p className="text-xs font-semibold text-primary tracking-wider uppercase mb-5">
               Homeowners
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="flex flex-col gap-3">
               {[
                 { href: '/signup?role=homeowner', label: 'Submit a Project' },
                 { href: '/how-it-works#homeowners', label: 'How It Works' },
                 { href: '/login', label: 'My Dashboard' },
-                { href: '/faq', label: 'FAQ' },
               ].map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'none', transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#d1d5db' }}
-                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#6b7280' }}
+                  className="text-sm text-muted no-underline hover:text-foreground transition-colors"
                 >
                   {l.label}
                 </Link>
@@ -97,22 +68,20 @@ export default function Footer() {
 
           {/* For Contractors */}
           <div>
-            <p style={{ fontSize: '12px', fontWeight: 600, color: '#22c55e', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '20px' }}>
+            <p className="text-xs font-semibold text-primary tracking-wider uppercase mb-5">
               Contractors
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="flex flex-col gap-3">
               {[
-                { href: '/signup?role=contractor', label: 'Join as Contractor' },
-                { href: '/pricing', label: 'View Plans' },
+                { href: '/signup?role=contractor', label: 'Contractor Enrollment' },
+                { href: '/pricing', label: 'Membership Plans' },
                 { href: '/how-it-works#contractors', label: 'How It Works' },
                 { href: '/login', label: 'Contractor Portal' },
               ].map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'none', transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#d1d5db' }}
-                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#6b7280' }}
+                  className="text-sm text-muted no-underline hover:text-foreground transition-colors"
                 >
                   {l.label}
                 </Link>
@@ -122,10 +91,10 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <p style={{ fontSize: '12px', fontWeight: 600, color: '#22c55e', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '20px' }}>
+            <p className="text-xs font-semibold text-primary tracking-wider uppercase mb-5">
               Company
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="flex flex-col gap-3">
               {[
                 { href: '/about', label: 'About Us' },
                 { href: '/pricing', label: 'Pricing' },
@@ -135,9 +104,7 @@ export default function Footer() {
                 <Link
                   key={l.href}
                   href={l.href}
-                  style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'none', transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#d1d5db' }}
-                  onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#6b7280' }}
+                  className="text-sm text-muted no-underline hover:text-foreground transition-colors"
                 >
                   {l.label}
                 </Link>
@@ -147,21 +114,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div
-          style={{
-            borderTop: '1px solid #1a1a1a',
-            paddingTop: '24px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-          }}
-        >
-          <p style={{ fontSize: '13px', color: '#4b5563' }}>
+        <div className="border-t border-border pt-6 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted">
             &copy; {new Date().getFullYear()} Nexus Operations LLC. All rights reserved.
           </p>
-          <p style={{ fontSize: '13px', color: '#4b5563' }}>
+          <p className="text-sm text-muted">
             Serving Topeka, KS &amp; surrounding areas
           </p>
         </div>
