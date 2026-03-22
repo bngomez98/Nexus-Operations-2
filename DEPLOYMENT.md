@@ -16,9 +16,10 @@
 
 2. **Configure Environment Variables**
    ```
-   # Optional (for future integrations):
-   NEXT_PUBLIC_SUPABASE_URL=
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   STRIPE_SECRET_KEY=sk_live_...
+   NEXT_PUBLIC_BASE_URL=https://nexusoperations.org
    ```
 
 3. **Deploy**
@@ -62,20 +63,22 @@ docker run -p 3000:3000 nexops
 
 ## Environment Variables
 
-For production, set these in your deployment platform:
+Set these in your deployment platform (Vercel → Project Settings → Environment Variables):
 
 ```env
-# If using Supabase (future)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+# Supabase — https://app.supabase.com/project/_/settings/api
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-# If using Stripe (future)
-STRIPE_SECRET_KEY=your_stripe_key
-NEXT_PUBLIC_STRIPE_KEY=your_publishable_key
+# Stripe — https://dashboard.stripe.com/apikeys (use live keys in production)
+STRIPE_SECRET_KEY=sk_live_...
 
 # Application
+NEXT_PUBLIC_BASE_URL=https://nexusoperations.org
 NODE_ENV=production
 ```
+
+See `.env.example` in the repository root for a full reference.
 
 ## Security Checklist
 
@@ -87,25 +90,24 @@ NODE_ENV=production
 - [ ] Configure rate limiting
 - [ ] Set up monitoring/logging
 
-## Database Migration (Future)
+## Database Migration
 
-When migrating from in-memory to production database:
+The app currently uses in-memory Maps for users and projects (seeded with demo data). To switch to persistent storage:
 
-1. **Create Supabase Project**
+1. **Supabase is already wired up** for session middleware — extend it for data queries by replacing the `Map` stores in `lib/auth.ts` and `lib/store.ts` with Supabase client calls.
+
+2. **Create tables** matching the `User` and `Project` interfaces in `lib/auth.ts` and `lib/store.ts`.
+
+3. **Deploy schema**
    ```bash
-   # Use Supabase CLI
-   supabase projects create --name nexops
+   supabase login
+   supabase link --project-ref your-project-ref
    supabase db push
    ```
 
-2. **Update Connection**
-   - Modify `lib/store.ts` to use database client
-   - Update authentication to use Supabase Auth
-   - Test migrations locally first
+4. **Update connection** — Modify `lib/auth.ts` and `lib/store.ts` to query Supabase instead of the in-memory Maps.
 
-3. **Deploy**
-   - Push changes to GitHub
-   - Vercel automatically deploys
+5. **Deploy** — Push to GitHub; Vercel deploys automatically.
 
 ## Monitoring & Analytics
 

@@ -6,18 +6,24 @@
 
 ```bash
 # 1. Clone and navigate
-git clone <repo>
-cd nexops
+git clone https://github.com/bngomez98/Nexus-Operations-2.git
+cd Nexus-Operations-2
 
 # 2. Install dependencies
 pnpm install
 
-# 3. Start development server
+# 3. Configure environment variables
+cp .env.example .env.local
+# Edit .env.local and fill in your Supabase and Stripe credentials
+
+# 4. Start development server
 pnpm dev
 
-# 4. Open browser
+# 5. Open browser
 # Visit http://localhost:3000
 ```
+
+See `.env.example` for all required environment variables.
 
 ## Project Structure Best Practices
 
@@ -44,53 +50,91 @@ pnpm dev
 
 ## Authentication Flow
 
-### Login
+The app uses a two-layer authentication system:
+
+### Layer 1 — Supabase SSR (route protection)
+
+`middleware.ts` calls `lib/supabase/middleware.ts` on every request. It refreshes the Supabase session cookie and redirects unauthenticated requests to `/dashboard/**` routes back to `/login`.
+
+Requires: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+### Layer 2 — In-memory session store (development)
+
+`lib/auth.ts` manages users and sessions in plain `Map` objects seeded with demo data. This layer handles the `/api/auth/*` endpoints and the `getSession()` helper used in API routes.
+
+**Demo accounts (seeded on startup):**
+
+| Role | Email | Password |
+|---|---|---|
+| Homeowner | `homeowner@demo.com` | `password123` |
+| Contractor | `contractor@demo.com` | `password123` |
+
+### Login flow
 1. User submits credentials at `/login`
 2. POST to `/api/auth/login`
-3. Server validates and creates session
-4. Cookie set with `sessionId`
-5. Redirect to dashboard
+3. Server verifies password hash with bcrypt
+4. HTTP-only session cookie (`nexops_session`) set for 30 days
+5. Redirect to `/dashboard/homeowner` or `/dashboard/contractor`
 
-### Protected Routes
-1. Layout checks `getSession()`
-2. If no session, redirect to `/login`
-3. User data available in page context
+### Protected routes
+1. `middleware.ts` checks Supabase session on every `/dashboard/**` request
+2. If no active session → redirect to `/login`
+3. Page components call `getSession()` from `lib/auth.ts` for user data
 
 ### Logout
-1. Form POST to `/api/auth/logout`
-2. Session deleted from store
+1. Form `POST` to `/api/auth/logout`
+2. Session deleted from in-memory store
 3. Cookie cleared
-4. Redirect to home
+4. Redirect to `/`
 
-## Database Schema (Current - In-Memory)
+## Data Layer (Current — In-Memory)
 
-### User
+Users and projects are stored in `Map` objects defined in `lib/auth.ts` and `lib/store.ts`. Data is seeded once per process startup and does not persist across restarts.
+
+### User (`lib/auth.ts`)
+
 ```typescript
 interface User {
   id: string
   email: string
-  name: string
+  passwordHash: string
   role: 'homeowner' | 'contractor'
-  createdAt: Date
+  name: string
+  phone?: string
+  company?: string
+  plan?: 'standard' | 'premium' | 'elite' | null
+  stripeCustomerId?: string
+  stripeSubscriptionId?: string
+  subscriptionStatus?: 'active' | 'inactive' | 'canceled' | null
+  createdAt: string
 }
 ```
 
-### Project
+### Project (`lib/store.ts`)
+
 ```typescript
 interface Project {
   id: string
   homeownerId: string
+  homeownerName: string
   title: string
   category: string
   description: string
-  budget: number
-  status: 'open' | 'claimed' | 'completed' | 'cancelled'
+  address: string
+  budgetMin: number   // in cents
+  budgetMax: number   // in cents
+  status: 'open' | 'claimed' | 'completed'
   claimedBy?: string
-  photos: string[]
-  createdAt: Date
-  updatedAt: Date
+  claimedByName?: string
+  claimedAt?: string
+  urgency: 'flexible' | 'within_month' | 'within_week' | 'asap'
+  createdAt: string
 }
 ```
+
+### Migrating to a persistent database
+
+Replace the `Map` stores in `lib/auth.ts` and `lib/store.ts` with Supabase client calls. The middleware already uses Supabase for session management, making it straightforward to extend to full database queries.
 
 ## Styling Guide
 
@@ -241,12 +285,19 @@ console.log(response)
 
 ## Environment Variables
 
-For local development, create `.env.local`:
+For local development, create `.env.local` by copying `.env.example`:
 
-```env
-# No variables required for development
-# Database and integrations added in production
+```bash
+cp .env.example .env.local
 ```
+
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes (route protection) | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (route protection) | Supabase anon/public key |
+| `STRIPE_SECRET_KEY` | Yes (checkout) | Stripe secret key (`sk_test_...` in dev) |
+| `NEXT_PUBLIC_BASE_URL` | Yes (checkout redirects) | Full app URL, e.g. `http://localhost:3000` |
+| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Optional | Override OAuth redirect URL in local dev |
 
 ## Resources
 
