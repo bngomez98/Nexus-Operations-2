@@ -17,6 +17,14 @@ export default async function ContractorDashboard() {
     .eq('id', user.id)
     .single()
 
+  if ((profile?.role || user.user_metadata?.role || 'contractor') !== 'contractor') {
+    redirect('/dashboard/homeowner')
+  }
+
+  if (profile?.subscription_status !== 'active') {
+    redirect('/dashboard/contractor/subscribe')
+  }
+
   // Fetch available projects (pending status)
   const { data: projects } = await supabase
     .from('projects')
