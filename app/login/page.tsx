@@ -1,18 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Building2, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  function getSafeRedirectTarget(value: string | null) {
+    if (!value || !value.startsWith('/') || value.startsWith('//')) {
+      return null
+    }
+
+    return value
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,11 +40,24 @@ export default function LoginPage() {
         return
       }
 
-      // Get user profile to determine role
+      // Get user profile to determine role and subscription state
       const { data: { user } } = await supabase.auth.getUser()
-      const role = user?.user_metadata?.role || 'homeowner'
+      const { data: profile } = user
+        ? await supabase
+            .from('profiles')
+            .select('role, subscription_status')
+            .eq('id', user.id)
+            .maybeSingle()
+        : { data: null }
 
-      router.push(role === 'contractor' ? '/dashboard/contractor' : '/dashboard/homeowner')
+      const role = profile?.role || user?.user_metadata?.role || 'homeowner'
+      const defaultTarget =
+        role === 'contractor'
+          ? (profile?.subscription_status === 'active' ? '/dashboard/contractor' : '/dashboard/contractor/subscribe')
+          : '/dashboard/homeowner'
+      const redirectTarget = getSafeRedirectTarget(searchParams.get('redirect')) || defaultTarget
+
+      router.push(redirectTarget)
       router.refresh()
     } catch {
       setError('An unexpected error occurred. Please try again.')
@@ -123,5 +145,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }

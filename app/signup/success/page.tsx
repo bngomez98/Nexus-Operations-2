@@ -1,7 +1,22 @@
 import Link from 'next/link'
 import { Building2, Mail, ArrowRight } from 'lucide-react'
 
-export default function SignUpSuccessPage() {
+type SignUpSuccessPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
+
+function getSingleParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value
+}
+
+export default async function SignUpSuccessPage({ searchParams }: SignUpSuccessPageProps) {
+  const params = searchParams ? await searchParams : {}
+  const plan = getSingleParam(params.plan)
+  const hasSelectedPlan = Boolean(plan)
+  const continueHref = hasSelectedPlan
+    ? `/login?redirect=${encodeURIComponent(`/dashboard/contractor/subscribe?plan=${plan}`)}`
+    : '/login'
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="w-full max-w-md text-center">
@@ -24,14 +39,16 @@ export default function SignUpSuccessPage() {
             Check your email
           </h1>
           <p className="text-base text-muted mb-8 leading-relaxed">
-            We sent a confirmation link to your email address. Please verify your email to complete registration and access your account.
+            {hasSelectedPlan
+              ? 'We sent a confirmation link to your email address. Verify your account, then sign in to finish Stripe checkout and unlock the contractor dashboard.'
+              : 'We sent a confirmation link to your email address. Please verify your email to complete registration and access your account.'}
           </p>
 
           <Link 
-            href="/login"
+            href={continueHref}
             className="inline-flex items-center justify-center gap-2 w-full py-4 bg-primary text-primary-fg font-bold text-base rounded-xl no-underline hover:bg-primary/90 transition-colors"
           >
-            Continue to Sign In <ArrowRight size={18} />
+            {hasSelectedPlan ? 'Verify then Choose Your Plan' : 'Continue to Sign In'} <ArrowRight size={18} />
           </Link>
         </div>
 
