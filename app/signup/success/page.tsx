@@ -1,3 +1,4 @@
+import { getPlanById } from '@/lib/products'
 import Link from 'next/link'
 import { Building2, Mail, ArrowRight } from 'lucide-react'
 
@@ -11,7 +12,8 @@ function getSingleParam(value: string | string[] | undefined) {
 
 export default async function SignUpSuccessPage({ searchParams }: SignUpSuccessPageProps) {
   const params = searchParams ? await searchParams : {}
-  const plan = getSingleParam(params.plan)
+  const planParam = getSingleParam(params.plan)
+  const plan = planParam && getPlanById(planParam) ? planParam : undefined
   const hasSelectedPlan = Boolean(plan)
   const continueHref = hasSelectedPlan
     ? `/login?redirect=${encodeURIComponent(`/dashboard/contractor/subscribe?plan=${plan}`)}`

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { PLANS } from '@/lib/products'
+import { getPlanById, PLANS } from '@/lib/products'
 import { createCheckoutSession } from '@/app/actions/stripe'
 import { ArrowLeft, CheckCircle2, Zap, Crown } from 'lucide-react'
 import Link from 'next/link'
@@ -17,7 +17,8 @@ function getSingleParam(value: string | string[] | undefined) {
 
 export default async function SubscribePage({ searchParams }: SubscribePageProps) {
   const params = searchParams ? await searchParams : {}
-  const selectedPlanId = getSingleParam(params.plan)
+  const planParam = getSingleParam(params.plan)
+  const selectedPlanId = planParam && getPlanById(planParam) ? planParam : undefined
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect(`/login?redirect=${encodeURIComponent(`/dashboard/contractor/subscribe${selectedPlanId ? `?plan=${selectedPlanId}` : ''}`)}`)

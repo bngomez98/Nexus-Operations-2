@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getPlanById } from '@/lib/products'
 import { stripe } from '@/lib/stripe'
 import Link from 'next/link'
 import { CheckCircle2, ArrowRight, Zap } from 'lucide-react'
@@ -16,6 +17,7 @@ export default async function SubscribeSuccessPage({ searchParams }: SubscribeSu
   const sessionId = getSingleParam(params.session_id)
   let planName = 'membership'
   let isVerified = false
+  let activationError = false
 
   if (sessionId) {
     const supabase = await createClient()
@@ -33,17 +35,15 @@ export default async function SubscribeSuccessPage({ searchParams }: SubscribeSu
         checkoutSession.mode === 'subscription' &&
         checkoutSession.status === 'complete' &&
         sessionUserId === user.id &&
-        planId
+        planId &&
+        getPlanById(planId)
       ) {
-        planName = planId
-        isVerified = true
-
         const stripeCustomerId =
           typeof checkoutSession.customer === 'string'
             ? checkoutSession.customer
             : checkoutSession.customer?.id ?? null
 
-        await supabase
+        const { error } = await supabase
           .from('profiles')
           .update({
             subscription_tier: planId,
@@ -51,6 +51,13 @@ export default async function SubscribeSuccessPage({ searchParams }: SubscribeSu
             stripe_customer_id: stripeCustomerId,
           })
           .eq('id', user.id)
+
+        if (!error) {
+          planName = planId
+          isVerified = true
+        } else {
+          activationError = true
+        }
       }
     }
   }
@@ -64,17 +71,21 @@ export default async function SubscribeSuccessPage({ searchParams }: SubscribeSu
         </div>
 
         <h1 style={{ fontSize: '36px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.03em', marginBottom: '16px', lineHeight: 1.1 }}>
-          {isVerified ? 'You&apos;re in.' : 'Checkout received.'}
+          {isVerified ? 'You&apos;re in.' : activationError ? 'We need one more step.' : 'Checkout received.'}
         </h1>
         <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: 1.7, marginBottom: '12px' }}>
           {isVerified
             ? `Your ${planName} membership is now active. Head to your dashboard to start claiming exclusive projects.`
-            : 'We received your checkout return. Sign in again if needed, then reopen this page from Stripe to finish activating your membership.'}
+            : activationError
+              ? 'Your payment appears to have completed, but we could not update your contractor profile automatically. Please reopen the plans page while signed in so we can retry activation.'
+              : 'We received your checkout return. Sign in again if needed, then reopen this page from Stripe to finish activating your membership.'}
         </p>
         <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '40px' }}>
           {isVerified
             ? 'A confirmation email has been sent to you from Stripe. Cancel anytime from your dashboard.'
-            : 'If you already completed payment, make sure you opened the success link while signed in to the same contractor account.'}
+            : activationError
+              ? 'If the issue persists, contact support with the email address used for checkout so the account can be activated safely.'
+              : 'If you already completed payment, make sure you opened the success link while signed in to the same contractor account.'}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>

@@ -16,11 +16,20 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
 
   function getSafeRedirectTarget(value: string | null) {
-    if (!value || !value.startsWith('/') || value.startsWith('//')) {
+    if (!value || !value.startsWith('/') || value.includes('\\')) {
       return null
     }
 
-    return value
+    try {
+      const url = new URL(value, window.location.origin)
+      if (url.origin !== window.location.origin) {
+        return null
+      }
+
+      return `${url.pathname}${url.search}${url.hash}`
+    } catch {
+      return null
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
