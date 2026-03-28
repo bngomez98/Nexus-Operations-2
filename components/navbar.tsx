@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, Zap } from 'lucide-react'
+import { Menu, X, Zap, ChevronRight } from 'lucide-react'
 
 const NAV_LINKS = [
   { href: '/how-it-works', label: 'How It Works' },
@@ -17,196 +17,348 @@ export default function Navbar() {
   const pathname = usePathname()
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
+    const onScroll = () => setScrolled(window.scrollY > 24)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useEffect(() => { setOpen(false) }, [pathname])
+
+  // Lock body scroll when menu open
   useEffect(() => {
-    setOpen(false)
-  }, [pathname])
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
 
   return (
-    <header
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        transition: 'all 0.3s ease',
-        backgroundColor: scrolled ? 'rgba(10,10,10,0.95)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        borderBottom: scrolled ? '1px solid #222222' : '1px solid transparent',
-      }}
-    >
-      <nav
+    <>
+      <header
         style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          padding: '0 24px',
-          height: '72px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          backgroundColor: scrolled ? 'rgba(8,8,8,0.88)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
         }}
       >
-        {/* Logo */}
-        <Link
-          href="/"
+        {/* Top accent line */}
+        {scrolled && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(34,197,94,0.4) 50%, transparent 100%)',
+          }} />
+        )}
+
+        <nav
           style={{
+            maxWidth: '1280px',
+            margin: '0 auto',
+            padding: '0 24px',
+            height: '70px',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            textDecoration: 'none',
+            justifyContent: 'space-between',
           }}
         >
-          <div
+          {/* Logo */}
+          <Link
+            href="/"
             style={{
-              width: '36px',
-              height: '36px',
-              backgroundColor: '#22c55e',
-              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: '10px',
+              textDecoration: 'none',
               flexShrink: 0,
             }}
           >
-            <Zap size={20} color="#0a0a0a" fill="#0a0a0a" />
-          </div>
-          <span
-            style={{
-              fontSize: '18px',
-              fontWeight: 700,
-              color: '#ffffff',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Nexus<span style={{ color: '#22c55e' }}>Ops</span>
-          </span>
-        </Link>
-
-        {/* Desktop nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="hidden-mobile">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
+            <div
               style={{
-                padding: '8px 16px',
-                fontSize: '14px',
-                fontWeight: 500,
-                color: pathname === link.href ? '#22c55e' : '#9ca3af',
-                textDecoration: 'none',
-                borderRadius: '8px',
-                transition: 'color 0.2s',
+                width: '36px',
+                height: '36px',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 0 16px rgba(34,197,94,0.3)',
+                transition: 'box-shadow 0.2s, transform 0.2s',
               }}
               onMouseEnter={(e) => {
-                if (pathname !== link.href) (e.target as HTMLElement).style.color = '#ffffff'
+                const el = e.currentTarget
+                el.style.boxShadow = '0 0 24px rgba(34,197,94,0.5)'
+                el.style.transform = 'scale(1.05)'
               }}
               onMouseLeave={(e) => {
-                if (pathname !== link.href) (e.target as HTMLElement).style.color = '#9ca3af'
+                const el = e.currentTarget
+                el.style.boxShadow = '0 0 16px rgba(34,197,94,0.3)'
+                el.style.transform = 'scale(1)'
               }}
             >
-              {link.label}
+              <Zap size={19} color="#080808" fill="#080808" />
+            </div>
+            <span
+              style={{
+                fontSize: '18px',
+                fontWeight: 800,
+                color: '#ffffff',
+                letterSpacing: '-0.03em',
+              }}
+            >
+              Nexus<span style={{ color: '#22c55e' }}>Ops</span>
+            </span>
+          </Link>
+
+          {/* Desktop nav */}
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+            className="show-md"
+          >
+            {NAV_LINKS.map((link) => {
+              const active = pathname === link.href
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  style={{
+                    position: 'relative',
+                    padding: '8px 14px',
+                    fontSize: '14px',
+                    fontWeight: active ? 600 : 500,
+                    color: active ? '#ffffff' : '#6b7280',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    transition: 'color 0.15s ease, background-color 0.15s ease',
+                    backgroundColor: active ? 'rgba(255,255,255,0.05)' : 'transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active) {
+                      (e.currentTarget as HTMLElement).style.color = '#d1d5db'
+                      ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.04)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) {
+                      (e.currentTarget as HTMLElement).style.color = '#6b7280'
+                      ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                    }
+                  }}
+                >
+                  {link.label}
+                  {active && (
+                    <span style={{
+                      position: 'absolute',
+                      bottom: '2px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '16px',
+                      height: '2px',
+                      borderRadius: '1px',
+                      backgroundColor: '#22c55e',
+                    }} />
+                  )}
+                </Link>
+              )
+            })}
+
+            <div style={{ width: '1px', height: '18px', backgroundColor: '#1e1e1e', margin: '0 6px' }} />
+
+            <Link
+              href="/login"
+              style={{
+                padding: '8px 14px',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: '#6b7280',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                transition: 'color 0.15s, background-color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.color = '#d1d5db'
+                ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.04)'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.color = '#6b7280'
+                ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+              }}
+            >
+              Sign In
             </Link>
-          ))}
 
-          <div style={{ width: '1px', height: '20px', backgroundColor: '#222222', margin: '0 8px' }} />
+            <Link
+              href="/signup"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 18px',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#080808',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                transition: 'opacity 0.15s, transform 0.15s, box-shadow 0.15s',
+                boxShadow: '0 2px 12px rgba(34,197,94,0.2)',
+                letterSpacing: '-0.01em',
+                marginLeft: '4px',
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement
+                el.style.transform = 'translateY(-1px)'
+                el.style.boxShadow = '0 4px 20px rgba(34,197,94,0.35)'
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement
+                el.style.transform = 'translateY(0)'
+                el.style.boxShadow = '0 2px 12px rgba(34,197,94,0.2)'
+              }}
+            >
+              Get Started
+              <ChevronRight size={13} />
+            </Link>
+          </div>
 
-          <Link
-            href="/login"
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="hide-md"
             style={{
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#9ca3af',
-              textDecoration: 'none',
-              borderRadius: '8px',
-              transition: 'color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '40px',
+              height: '40px',
+              background: open ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '10px',
+              color: '#ffffff',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
             }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#ffffff' }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#9ca3af' }}
+            aria-label="Toggle menu"
+            aria-expanded={open}
           >
-            Sign In
-          </Link>
+            <div style={{
+              transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            }}>
+              {open ? <X size={18} /> : <Menu size={18} />}
+            </div>
+          </button>
+        </nav>
+      </header>
 
-          <Link
-            href="/signup"
-            style={{
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: '#0a0a0a',
-              backgroundColor: '#22c55e',
-              textDecoration: 'none',
-              borderRadius: '8px',
-              transition: 'background-color 0.2s',
-              whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = '#16a34a' }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.backgroundColor = '#22c55e' }}
-          >
-            Get Started
-          </Link>
-        </div>
-
-        {/* Mobile hamburger */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="show-mobile"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#ffffff',
-            cursor: 'pointer',
-            padding: '8px',
-          }}
-          aria-label="Toggle menu"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </nav>
-
-      {/* Mobile menu */}
+      {/* Mobile backdrop */}
       {open && (
         <div
+          onClick={() => setOpen(false)}
           style={{
-            backgroundColor: '#111111',
-            borderTop: '1px solid #222222',
-            padding: '16px 24px 24px',
+            position: 'fixed',
+            inset: 0,
+            zIndex: 98,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+            animation: 'fadeIn 0.2s ease',
           }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {NAV_LINKS.map((link) => (
+        />
+      )}
+
+      {/* Mobile menu drawer */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 99,
+          backgroundColor: '#0d0d0d',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
+          transform: open ? 'translateY(0)' : 'translateY(-100%)',
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? 'all' : 'none',
+          paddingTop: '70px',
+        }}
+      >
+        <div style={{ padding: '20px 20px 28px' }}>
+          {/* Live indicator */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 14px',
+            backgroundColor: 'rgba(34,197,94,0.06)',
+            border: '1px solid rgba(34,197,94,0.12)',
+            borderRadius: '10px',
+            marginBottom: '16px',
+          }}>
+            <div style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: '#22c55e',
+              animation: 'dot-pulse 1.5s ease-in-out infinite',
+            }} />
+            <span style={{ fontSize: '12px', color: '#4ade80', fontWeight: 600 }}>
+              Live · Topeka, KS
+            </span>
+          </div>
+
+          {/* Nav links */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '16px' }}>
+            {NAV_LINKS.map((link, idx) => (
               <Link
                 key={link.href}
                 href={link.href}
                 style={{
-                  padding: '12px 16px',
-                  fontSize: '15px',
-                  fontWeight: 500,
+                  padding: '13px 14px',
+                  fontSize: '16px',
+                  fontWeight: pathname === link.href ? 700 : 500,
                   color: pathname === link.href ? '#22c55e' : '#d1d5db',
                   textDecoration: 'none',
-                  borderRadius: '8px',
-                  display: 'block',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: pathname === link.href ? 'rgba(34,197,94,0.06)' : 'transparent',
+                  animation: `slideDown 0.3s cubic-bezier(0.16,1,0.3,1) ${idx * 0.05}s both`,
                 }}
               >
                 {link.label}
+                {pathname === link.href && <ChevronRight size={14} color="#22c55e" />}
               </Link>
             ))}
-            <div style={{ height: '1px', backgroundColor: '#222222', margin: '8px 0' }} />
+          </div>
+
+          <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(255,255,255,0.06) 0%, transparent 100%)', marginBottom: '16px' }} />
+
+          {/* Auth buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <Link
               href="/login"
               style={{
-                padding: '12px 16px',
+                padding: '13px 16px',
                 fontSize: '15px',
-                fontWeight: 500,
-                color: '#d1d5db',
+                fontWeight: 600,
+                color: '#9ca3af',
                 textDecoration: 'none',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 display: 'block',
+                border: '1px solid #1e1e1e',
+                textAlign: 'center',
+                animation: 'slideDown 0.3s cubic-bezier(0.16,1,0.3,1) 0.15s both',
+                backgroundColor: '#131313',
               }}
             >
               Sign In
@@ -216,32 +368,45 @@ export default function Navbar() {
               style={{
                 padding: '14px 16px',
                 fontSize: '15px',
-                fontWeight: 600,
-                color: '#0a0a0a',
-                backgroundColor: '#22c55e',
+                fontWeight: 700,
+                color: '#080808',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                 textDecoration: 'none',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 display: 'block',
                 textAlign: 'center',
-                marginTop: '8px',
+                boxShadow: '0 4px 16px rgba(34,197,94,0.25)',
+                animation: 'slideDown 0.3s cubic-bezier(0.16,1,0.3,1) 0.2s both',
               }}
             >
               Get Started Free
             </Link>
           </div>
         </div>
-      )}
+      </div>
 
       <style>{`
         @media (min-width: 768px) {
-          .hidden-mobile { display: flex !important; }
-          .show-mobile { display: none !important; }
+          .show-md { display: flex !important; }
+          .hide-md { display: none !important; }
         }
         @media (max-width: 767px) {
-          .hidden-mobile { display: none !important; }
-          .show-mobile { display: flex !important; }
+          .hide-sm { display: none !important; }
+          .show-sm { display: flex !important; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes dot-pulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.4; }
         }
       `}</style>
-    </header>
+    </>
   )
 }
