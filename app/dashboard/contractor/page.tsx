@@ -50,8 +50,8 @@ function ProjectCard({
   return (
     <article
       style={{
-        backgroundColor: '#0d0d0d',
-        border: '1px solid #1a1a1a',
+        backgroundColor: 'var(--color-black-soft)',
+        border: '1px solid var(--color-black-border)',
         borderRadius: '18px',
         padding: '24px',
         display: 'flex',
