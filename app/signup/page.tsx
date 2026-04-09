@@ -17,6 +17,8 @@ const inpStyle: React.CSSProperties = {
   fontFamily: 'inherit',
   transition: 'border-color 0.2s, box-shadow 0.2s',
 }
+import { Building2, Eye, EyeOff, ArrowRight, Home, HardHat } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 function SignUpForm() {
   const router = useRouter()
@@ -40,9 +42,18 @@ function SignUpForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
+    
+    if (form.password !== form.confirm) {
+      setError('Passwords do not match.')
+      return
+    }
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+
     setLoading(true)
+    
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -51,14 +62,32 @@ function SignUpForm() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Sign up failed.'); return }
-      if (form.role === 'contractor' && plan) {
-        router.push(`/dashboard/contractor/subscribe?plan=${plan}`)
-      } else if (form.role === 'contractor') {
-        router.push('/dashboard/contractor/subscribe')
-      } else {
-        router.push('/dashboard/homeowner')
+      const supabase = createClient()
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard/${form.role}`,
+          data: {
+            full_name: form.name,
+            phone: form.phone,
+            company: form.company,
+            role: form.role,
+          },
+        },
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        return
       }
-      router.refresh()
+
+      // Redirect to success page or dashboard
+      if (form.role === 'contractor' && plan) {
+        router.push(`/signup/success?plan=${plan}`)
+      } else {
+        router.push('/signup/success')
+      }
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -166,6 +195,76 @@ function SignUpForm() {
           <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '44px' }} className="mobile-logo">
             <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(34,197,94,0.25)' }}>
               <Zap size={19} color="#080808" fill="#080808" />
+    <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-lg">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 no-underline mb-12 justify-center">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+            <Building2 size={22} className="text-primary-fg" />
+          </div>
+          <span className="text-xl font-bold text-foreground">
+            Nexus <span className="text-primary">Operations</span>
+          </span>
+        </Link>
+
+        <h1 className="text-3xl font-extrabold text-foreground mb-2 tracking-tight">Create your account</h1>
+        <p className="text-base text-muted mb-8">
+          Already have one?{' '}
+          <Link href="/login" className="text-primary no-underline font-semibold hover:underline">
+            Sign in
+          </Link>
+        </p>
+
+        {/* Role toggle */}
+        <div className="flex bg-card border border-border rounded-xl p-1 gap-1 mb-8">
+          {([['homeowner', 'Homeowner', Home], ['contractor', 'Contractor', HardHat]] as const).map(([role, label, Icon]) => (
+            <button
+              key={role}
+              type="button"
+              onClick={() => set('role', role)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border-none cursor-pointer text-sm font-semibold transition-all ${
+                form.role === role 
+                  ? 'bg-primary text-primary-fg' 
+                  : 'bg-transparent text-muted hover:text-foreground'
+              }`}
+            >
+              <Icon size={16} />
+              {label}
+              {role === 'homeowner' && <span className="text-xs font-bold opacity-70">FREE</span>}
+            </button>
+          ))}
+        </div>
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-6 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Full Name *</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => set('name', e.target.value)}
+                required
+                className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="Alex Johnson"
+                autoComplete="name"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Phone</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => set('phone', e.target.value)}
+                className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="785-555-0100"
+                autoComplete="tel"
+              />
             </div>
             <span style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.025em' }}>
               Nexus<span style={{ color: '#22c55e' }}>Ops</span>
@@ -220,6 +319,52 @@ function SignUpForm() {
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#4b5563', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Phone</label>
                 <input style={focusStyle('phone')} type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} onFocus={() => setFocusedField('phone')} onBlur={() => setFocusedField(null)} placeholder="785-555-0100" autoComplete="tel" />
               </div>
+          <div>
+            <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Email Address *</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => set('email', e.target.value)}
+              required
+              className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+              placeholder="you@company.com"
+              autoComplete="email"
+            />
+          </div>
+
+          {form.role === 'contractor' && (
+            <div>
+              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Company Name</label>
+              <input
+                type="text"
+                value={form.company}
+                onChange={(e) => set('company', e.target.value)}
+                className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="Your Business Name"
+                autoComplete="organization"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Password *</label>
+            <div className="relative">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => set('password', e.target.value)}
+                required
+                className="w-full px-4 py-3.5 pr-12 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                placeholder="Min. 6 characters"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(!showPw)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-muted hover:text-foreground flex items-center"
+              >
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
 
             <div>
@@ -232,6 +377,29 @@ function SignUpForm() {
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#4b5563', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Company Name</label>
                 <input style={focusStyle('company')} type="text" value={form.company} onChange={(e) => set('company', e.target.value)} onFocus={() => setFocusedField('company')} onBlur={() => setFocusedField(null)} placeholder="Your Business Name" autoComplete="organization" />
               </div>
+          <div>
+            <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Confirm Password *</label>
+            <input
+              type="password"
+              value={form.confirm}
+              onChange={(e) => set('confirm', e.target.value)}
+              required
+              className="w-full px-4 py-3.5 bg-card border border-border rounded-xl text-foreground text-base outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+              placeholder="Re-enter password"
+              autoComplete="new-password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center justify-center gap-2 py-4 bg-primary text-primary-fg font-bold text-base rounded-xl border-none cursor-pointer mt-2 hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Creating account...' : (
+              <>
+                {form.role === 'homeowner' ? 'Create Free Account' : 'Create Contractor Account'}
+                <ArrowRight size={18} />
+              </>
             )}
 
             <div>
@@ -282,6 +450,15 @@ function SignUpForm() {
                 ? "After creating your account, you'll choose a membership plan to access the project feed."
                 : 'Homeowner accounts are always free — no credit card needed.'}
             </p>
+        {form.role === 'homeowner' && (
+          <div className="mt-5 p-4 bg-card border border-border rounded-xl text-center">
+            <p className="text-sm text-muted">Homeowner accounts are always free — no credit card required.</p>
+          </div>
+        )}
+
+        {form.role === 'contractor' && (
+          <div className="mt-5 p-4 bg-card border border-primary/20 rounded-xl text-center">
+            <p className="text-sm text-muted">After creating your account, select a membership plan to access the project feed.</p>
           </div>
 
           <p style={{ fontSize: '12px', color: '#1f2937', textAlign: 'center', marginTop: '24px' }}>
@@ -290,6 +467,11 @@ function SignUpForm() {
             <Link href="/privacy" style={{ color: '#374151', textDecoration: 'underline' }}>Privacy</Link>
           </p>
         </div>
+        <p className="text-xs text-muted text-center mt-8">
+          <Link href="/terms" className="text-muted underline hover:text-foreground">Terms</Link>
+          {' · '}
+          <Link href="/privacy" className="text-muted underline hover:text-foreground">Privacy</Link>
+        </p>
       </div>
 
       <style>{`
@@ -308,6 +490,7 @@ function SignUpForm() {
 export default function SignUpPage() {
   return (
     <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#080808' }} />}>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <SignUpForm />
     </Suspense>
   )

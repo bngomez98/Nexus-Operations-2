@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Zap, ChevronRight } from 'lucide-react'
+import { Menu, X, Building2 } from 'lucide-react'
 
 const NAV_LINKS = [
   { href: '/how-it-works', label: 'How It Works' },
@@ -191,6 +192,35 @@ export default function Navbar() {
                 (e.currentTarget as HTMLElement).style.color = '#6b7280'
                 ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
               }}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-background/95 backdrop-blur-xl border-b border-border' 
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
+      <nav className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 no-underline">
+          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shrink-0">
+            <Building2 size={20} className="text-primary-fg" />
+          </div>
+          <span className="text-lg font-bold text-foreground tracking-tight">
+            Nexus <span className="text-primary">Operations</span>
+          </span>
+        </Link>
+
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-2">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors no-underline ${
+                pathname === link.href 
+                  ? 'text-primary' 
+                  : 'text-muted hover:text-foreground'
+              }`}
             >
               Sign In
             </Link>
@@ -258,6 +288,32 @@ export default function Navbar() {
           </button>
         </nav>
       </header>
+          <div className="w-px h-5 bg-border mx-2" />
+
+          <Link
+            href="/login"
+            className="px-4 py-2 text-sm font-medium text-muted hover:text-foreground rounded-lg transition-colors no-underline"
+          >
+            Sign In
+          </Link>
+
+          <Link
+            href="/signup"
+            className="px-5 py-2.5 text-sm font-semibold text-primary-fg bg-primary rounded-lg hover:bg-primary/90 transition-colors no-underline whitespace-nowrap"
+          >
+            Get Started
+          </Link>
+        </div>
+
+        {/* Mobile hamburger */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="md:hidden bg-transparent border-none text-foreground cursor-pointer p-2"
+          aria-label="Toggle menu"
+        >
+          {open ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </nav>
 
       {/* Mobile backdrop */}
       {open && (
@@ -334,6 +390,15 @@ export default function Navbar() {
                   backgroundColor: pathname === link.href ? 'rgba(34,197,94,0.06)' : 'transparent',
                   animation: `slideDown 0.3s cubic-bezier(0.16,1,0.3,1) ${idx * 0.05}s both`,
                 }}
+        <div className="md:hidden bg-card border-t border-border px-6 py-4">
+          <div className="flex flex-col gap-1">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`px-4 py-3 text-base font-medium rounded-lg block no-underline ${
+                  pathname === link.href ? 'text-primary' : 'text-muted'
+                }`}
               >
                 {link.label}
                 {pathname === link.href && <ChevronRight size={14} color="#22c55e" />}
@@ -360,6 +425,10 @@ export default function Navbar() {
                 animation: 'slideDown 0.3s cubic-bezier(0.16,1,0.3,1) 0.15s both',
                 backgroundColor: '#131313',
               }}
+            <div className="h-px bg-border my-2" />
+            <Link
+              href="/login"
+              className="px-4 py-3 text-base font-medium text-muted rounded-lg block no-underline"
             >
               Sign In
             </Link>
@@ -378,6 +447,7 @@ export default function Navbar() {
                 boxShadow: '0 4px 16px rgba(34,197,94,0.25)',
                 animation: 'slideDown 0.3s cubic-bezier(0.16,1,0.3,1) 0.2s both',
               }}
+              className="px-4 py-3.5 text-base font-semibold text-primary-fg bg-primary rounded-lg block text-center no-underline mt-2"
             >
               Get Started Free
             </Link>
@@ -408,5 +478,7 @@ export default function Navbar() {
         }
       `}</style>
     </>
+      )}
+    </header>
   )
 }
