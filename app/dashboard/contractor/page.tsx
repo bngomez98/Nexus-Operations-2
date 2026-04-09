@@ -152,7 +152,7 @@ function ProjectCard({
         {isClaiming ? (
           <><span style={{ width: '14px', height: '14px', border: '2px solid rgba(8,8,8,0.3)', borderTopColor: '#080808', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} /> Claiming…</>
         ) : isOpen ? (
-          <><Lock size={14} /> Claim This Project</>
+          <><Zap size={14} /> Claim This Project</>
         ) : (
           <><CheckCircle2 size={14} /> Already Claimed</>
         )}
