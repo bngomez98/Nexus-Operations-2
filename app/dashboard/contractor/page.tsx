@@ -5,7 +5,7 @@ import Link from 'next/link'
 import useSWR, { mutate } from 'swr'
 import {
   LogOut, Zap, AlertCircle, Filter, MapPin, Clock, CheckCircle2,
-  Crown, ArrowRight, TrendingUp, Lock, Briefcase, ChevronRight,
+  Crown, ArrowRight, TrendingUp, Lock, Briefcase,
 } from 'lucide-react'
 import type { Project } from '@/lib/store'
 import { URGENCY_LABELS } from '@/lib/store'

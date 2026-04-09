@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Zap, MapPin, Phone, Mail, ArrowRight, ExternalLink } from 'lucide-react'
+import { Zap, MapPin, Phone, Mail, ArrowRight } from 'lucide-react'
 
 const FOOTER_LINKS = {
   homeowners: [

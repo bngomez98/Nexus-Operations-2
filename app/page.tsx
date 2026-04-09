@@ -4,7 +4,7 @@ import Navbar from '@/components/navbar'
 import Footer from '@/components/footer'
 import {
   ArrowRight, CheckCircle2, Shield, Clock, Star,
-  Users, TrendingUp, Zap, Lock, Bell, BarChart3, Award,
+  TrendingUp, Zap, Lock, BarChart3,
 } from 'lucide-react'
 
 const STATS = [
@@ -54,96 +54,44 @@ export default function HomePage() {
 
       {/* ── HERO ── */}
       <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-        {/* Background image */}
+        {/* Background */}
         <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-          <Image
-            src="/images/hero-bg.jpg"
-            alt="Topeka neighborhood"
-            fill
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-            priority
-          />
+          <Image src="/images/hero-bg.jpg" alt="Topeka neighborhood" fill style={{ objectFit: 'cover', objectPosition: 'center' }} priority />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(8,8,8,0.97) 0%, rgba(8,8,8,0.82) 55%, rgba(8,8,8,0.92) 100%)' }} />
-          {/* Grid overlay */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-          }} />
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
         </div>
-
         {/* Glow orbs */}
         <div style={{ position: 'absolute', top: '15%', right: '10%', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(34,197,94,0.07) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 1 }} />
         <div style={{ position: 'absolute', bottom: '-80px', left: '25%', width: '700px', height: '350px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(34,197,94,0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 1 }} />
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '1280px', margin: '0 auto', padding: '140px 24px 80px', width: '100%' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '60px', alignItems: 'center' }}>
-
-            {/* Left: copy */}
+            {/* Copy */}
             <div style={{ maxWidth: '680px' }}>
-              {/* Live badge */}
-              <div
-                className="animate-fade-up"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', backgroundColor: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '100px', padding: '7px 18px', marginBottom: '32px' }}
-              >
+              <div className="animate-fade-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', backgroundColor: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '100px', padding: '7px 18px', marginBottom: '32px' }}>
                 <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#22c55e', flexShrink: 0, animation: 'dot-pulse 1.5s ease-in-out infinite' }} />
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#4ade80', letterSpacing: '0.01em' }}>Now serving Topeka, KS — expanding soon</span>
               </div>
 
-              <h1
-                className="animate-fade-up delay-100"
-                style={{ fontSize: 'clamp(44px, 7vw, 88px)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.04em', color: '#ffffff', marginBottom: '24px' }}
-              >
+              <h1 className="animate-fade-up delay-100" style={{ fontSize: 'clamp(44px, 7vw, 88px)', fontWeight: 900, lineHeight: 1.0, letterSpacing: '-0.04em', color: '#ffffff', marginBottom: '24px' }}>
                 One contractor.<br />
                 <span className="text-gradient">Exclusively yours.</span>
               </h1>
 
-              <p
-                className="animate-fade-up delay-200"
-                style={{ fontSize: 'clamp(17px, 2vw, 20px)', color: '#6b7280', lineHeight: 1.75, marginBottom: '44px', maxWidth: '520px' }}
-              >
+              <p className="animate-fade-up delay-200" style={{ fontSize: 'clamp(17px, 2vw, 20px)', color: '#6b7280', lineHeight: 1.75, marginBottom: '44px', maxWidth: '520px' }}>
                 The exclusive project marketplace for Topeka homeowners and verified contractors.
                 No bidding wars. No shared leads. One match, one job.
               </p>
 
               <div className="animate-fade-up delay-300" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '48px' }}>
-                <Link
-                  href="/signup?role=homeowner"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    padding: '16px 32px',
-                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                    color: '#080808', fontWeight: 800, fontSize: '15px',
-                    borderRadius: '12px', textDecoration: 'none',
-                    letterSpacing: '-0.01em',
-                    boxShadow: '0 4px 24px rgba(34,197,94,0.3)',
-                    transition: 'transform 0.15s, box-shadow 0.15s',
-                  }}
-                  onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 32px rgba(34,197,94,0.4)' }}
-                  onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.transform = 'translateY(0)'; el.style.boxShadow = '0 4px 24px rgba(34,197,94,0.3)' }}
-                >
+                <Link href="/signup?role=homeowner" className="hp-cta-primary">
                   Post a Project Free <ArrowRight size={16} />
                 </Link>
-                <Link
-                  href="/signup?role=contractor"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    padding: '16px 32px',
-                    backgroundColor: 'rgba(255,255,255,0.04)',
-                    color: '#ffffff', fontWeight: 600, fontSize: '15px',
-                    borderRadius: '12px', textDecoration: 'none',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(8px)',
-                    transition: 'background-color 0.15s, border-color 0.15s',
-                  }}
-                  onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = 'rgba(255,255,255,0.07)'; el.style.borderColor = 'rgba(255,255,255,0.15)' }}
-                  onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.backgroundColor = 'rgba(255,255,255,0.04)'; el.style.borderColor = 'rgba(255,255,255,0.1)' }}
-                >
+                <Link href="/signup?role=contractor" className="hp-cta-secondary">
                   Join as Contractor
                 </Link>
               </div>
 
-              {/* Trust signals */}
               <div className="animate-fade-up delay-400" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
                 {['Free for homeowners', 'Verified contractors only', 'Exclusive claim lock'].map((item) => (
                   <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
@@ -154,15 +102,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: floating live-feed cards (desktop only) */}
-            <div className="animate-fade-up delay-200" style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '240px', flexShrink: 0 }}>
-              {/* Live feed card */}
-              <div style={{
-                background: 'rgba(13,13,13,0.88)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: '16px', padding: '20px',
-                backdropFilter: 'blur(20px)',
-              }}>
+            {/* Floating live-feed cards (desktop only) */}
+            <div className="animate-fade-up delay-200 hero-right" style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '240px', flexShrink: 0 }}>
+              <div style={{ background: 'rgba(13,13,13,0.88)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px', backdropFilter: 'blur(20px)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                   <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#22c55e', animation: 'dot-pulse 1.5s ease-in-out infinite' }} />
                   <span style={{ fontSize: '11px', fontWeight: 700, color: '#4ade80', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Live Feed</span>
@@ -181,14 +123,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              {/* Revenue card */}
-              <div style={{
-                background: 'rgba(13,13,13,0.88)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: '16px', padding: '18px 20px',
-                backdropFilter: 'blur(20px)',
-                display: 'flex', gap: '12px', alignItems: 'center',
-              }}>
+              <div style={{ background: 'rgba(13,13,13,0.88)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '18px 20px', backdropFilter: 'blur(20px)', display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <TrendingUp size={18} color="#22c55e" />
                 </div>
@@ -202,14 +137,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── STATS STRIP ── */}
+      {/* ── STATS ── */}
       <div style={{ backgroundColor: '#0d0d0d', borderTop: '1px solid #141414', borderBottom: '1px solid #141414', padding: '52px 24px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
           {STATS.map((s, i) => (
-            <div key={s.label} style={{
-              textAlign: 'center', padding: '8px 24px',
-              borderRight: i < STATS.length - 1 ? '1px solid #1a1a1a' : 'none',
-            }}>
+            <div key={s.label} style={{ textAlign: 'center', padding: '8px 24px', borderRight: i < STATS.length - 1 ? '1px solid #1a1a1a' : 'none' }}>
               <div style={{ fontSize: 'clamp(34px, 4vw, 48px)', fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 1, marginBottom: '8px' }}>
                 <span className="text-gradient">{s.value}</span>
               </div>
@@ -250,15 +182,12 @@ export default function HomePage() {
             {STEPS_HOMEOWNER.map((item, idx) => (
               <div
                 key={item.step}
+                className="step-card"
                 style={{
-                  padding: '48px 40px', backgroundColor: '#0d0d0d',
-                  border: '1px solid #1a1a1a',
+                  padding: '48px 40px', backgroundColor: '#0d0d0d', border: '1px solid #1a1a1a',
                   borderRadius: idx === 0 ? '20px 0 0 20px' : idx === STEPS_HOMEOWNER.length - 1 ? '0 20px 20px 0' : '0',
                   position: 'relative', overflow: 'hidden',
-                  transition: 'background-color 0.2s',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#101010' }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#0d0d0d' }}
               >
                 <div style={{ position: 'absolute', top: '12px', right: '20px', fontSize: '88px', fontWeight: 900, color: '#131313', lineHeight: 1, userSelect: 'none', letterSpacing: '-0.05em' }}>{item.step}</div>
                 <div style={{ width: '36px', height: '3px', background: 'linear-gradient(90deg, #22c55e, #4ade80)', borderRadius: '2px', marginBottom: '28px' }} />
@@ -268,7 +197,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <Link href="/signup?role=homeowner" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 28px', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', color: '#080808', fontWeight: 700, fontSize: '15px', borderRadius: '12px', textDecoration: 'none', boxShadow: '0 4px 20px rgba(34,197,94,0.2)' }}>
+          <Link href="/signup?role=homeowner" className="hp-cta-primary" style={{ fontSize: '15px' }}>
             Post Your Project Free <ArrowRight size={15} />
           </Link>
         </div>
@@ -278,7 +207,6 @@ export default function HomePage() {
       <section style={{ backgroundColor: '#060606', borderTop: '1px solid #111111', padding: '120px 24px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '80px', alignItems: 'center' }}>
-            {/* Image side */}
             <div style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden' }}>
               <Image src="/images/contractor-hero.jpg" alt="Professional contractor" width={640} height={520} style={{ width: '100%', height: 'auto', display: 'block' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6,6,6,0.75) 0%, transparent 55%)' }} />
@@ -297,7 +225,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Text side */}
             <div>
               <p className="section-label">For Contractors</p>
               <h2 style={{ fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, letterSpacing: '-0.035em', color: '#ffffff', marginBottom: '20px', lineHeight: 1.05 }}>
@@ -319,7 +246,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              <Link href="/pricing" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 28px', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', fontWeight: 600, fontSize: '15px', borderRadius: '12px', textDecoration: 'none' }}>
+              <Link href="/pricing" className="hp-link-green">
                 View Contractor Plans <ArrowRight size={15} />
               </Link>
             </div>
@@ -341,13 +268,12 @@ export default function HomePage() {
             {FEATURES.map(({ icon: Icon, title, body }, i) => (
               <div
                 key={title}
+                className="feature-tile"
                 style={{
                   backgroundColor: '#0d0d0d', border: '1px solid #1a1a1a', borderRadius: '20px', padding: '40px 36px',
                   gridColumn: (i === 0 || i === 3) ? 'span 2' : 'span 1',
-                  transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s', cursor: 'default',
+                  cursor: 'default',
                 }}
-                onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'rgba(34,197,94,0.2)'; el.style.boxShadow = '0 8px 40px rgba(0,0,0,0.4)'; el.style.transform = 'translateY(-2px)' }}
-                onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = '#1a1a1a'; el.style.boxShadow = 'none'; el.style.transform = 'translateY(0)' }}
               >
                 <div style={{ width: '48px', height: '48px', backgroundColor: 'rgba(34,197,94,0.08)', borderRadius: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', border: '1px solid rgba(34,197,94,0.1)' }}>
                   <Icon size={22} color="#22c55e" />
@@ -371,12 +297,7 @@ export default function HomePage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
             {TESTIMONIALS.map((t) => (
-              <div
-                key={t.name}
-                style={{ backgroundColor: '#0d0d0d', borderRadius: '20px', border: '1px solid #1a1a1a', padding: '36px 32px', display: 'flex', flexDirection: 'column', transition: 'border-color 0.2s, transform 0.2s, box-shadow 0.2s' }}
-                onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = '#2a2a2a'; el.style.transform = 'translateY(-3px)'; el.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)' }}
-                onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = '#1a1a1a'; el.style.transform = 'translateY(0)'; el.style.boxShadow = 'none' }}
-              >
+              <div key={t.name} className="testimonial-card" style={{ backgroundColor: '#0d0d0d', borderRadius: '20px', border: '1px solid #1a1a1a', padding: '36px 32px', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', gap: '3px', marginBottom: '20px' }}>
                   {Array.from({ length: t.rating }).map((_, i) => <Star key={i} size={14} color="#22c55e" fill="#22c55e" />)}
                 </div>
@@ -410,10 +331,10 @@ export default function HomePage() {
             Join the exclusive marketplace where every project goes to exactly one contractor. Zero competition. Real jobs. Flat rate.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
-            <Link href="/signup?role=homeowner" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '18px 36px', background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', color: '#080808', fontWeight: 800, fontSize: '16px', borderRadius: '14px', textDecoration: 'none', boxShadow: '0 4px 24px rgba(34,197,94,0.3)', letterSpacing: '-0.01em' }}>
+            <Link href="/signup?role=homeowner" className="hp-cta-primary" style={{ fontSize: '16px', padding: '18px 36px', borderRadius: '14px' }}>
               Post a Project — Free <ArrowRight size={18} />
             </Link>
-            <Link href="/pricing" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '18px 36px', border: '1px solid #1e1e1e', color: '#9ca3af', fontWeight: 600, fontSize: '16px', borderRadius: '14px', textDecoration: 'none' }}>
+            <Link href="/pricing" className="hp-cta-ghost" style={{ fontSize: '16px', padding: '18px 36px', borderRadius: '14px' }}>
               View Contractor Plans
             </Link>
           </div>
@@ -434,6 +355,76 @@ export default function HomePage() {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
+
+        /* ── Reusable CTA link classes (CSS hover, no JS needed) ── */
+        .hp-cta-primary {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 16px 32px;
+          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+          color: #080808; font-weight: 800; font-size: 15px;
+          border-radius: 12px; text-decoration: none; letter-spacing: -0.01em;
+          box-shadow: 0 4px 24px rgba(34,197,94,0.3);
+          transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .hp-cta-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 32px rgba(34,197,94,0.4);
+        }
+
+        .hp-cta-secondary {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 16px 32px;
+          background-color: rgba(255,255,255,0.04);
+          color: #ffffff; font-weight: 600; font-size: 15px;
+          border-radius: 12px; text-decoration: none;
+          border: 1px solid rgba(255,255,255,0.1);
+          backdrop-filter: blur(8px);
+          transition: background-color 0.15s, border-color 0.15s;
+        }
+        .hp-cta-secondary:hover {
+          background-color: rgba(255,255,255,0.07);
+          border-color: rgba(255,255,255,0.15);
+        }
+
+        .hp-cta-ghost {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 16px 32px;
+          border: 1px solid #1e1e1e; color: #9ca3af; font-weight: 600;
+          border-radius: 12px; text-decoration: none;
+          transition: border-color 0.15s, color 0.15s;
+        }
+        .hp-cta-ghost:hover { border-color: #2a2a2a; color: #ffffff; }
+
+        .hp-link-green {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 14px 28px;
+          border: 1px solid rgba(34,197,94,0.3);
+          color: #22c55e; font-weight: 600; font-size: 15px;
+          border-radius: 12px; text-decoration: none;
+          transition: background-color 0.15s, border-color 0.15s;
+        }
+        .hp-link-green:hover {
+          background-color: rgba(34,197,94,0.06);
+          border-color: rgba(34,197,94,0.5);
+        }
+
+        .step-card { transition: background-color 0.2s; }
+        .step-card:hover { background-color: #101010 !important; }
+
+        .feature-tile { transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+        .feature-tile:hover {
+          border-color: rgba(34,197,94,0.2) !important;
+          box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+          transform: translateY(-2px);
+        }
+
+        .testimonial-card { transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .testimonial-card:hover {
+          border-color: #2a2a2a !important;
+          transform: translateY(-3px);
+          box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        }
+
         @media (max-width: 900px) {
           .hero-right { display: none !important; }
         }
