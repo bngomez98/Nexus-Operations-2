@@ -5,9 +5,9 @@ import { getPlanById } from '@/lib/products'
 export default async function CheckoutSuccess({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string; session_id?: string }>
+  searchParams: { plan?: string; session_id?: string }
 }) {
-  const { plan: planId } = await searchParams
+  const { plan: planId } = searchParams
   const plan = planId ? getPlanById(planId) : undefined
 
   return (
